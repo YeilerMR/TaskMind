@@ -13,8 +13,11 @@ Proyecto final para el curso de disennio y programacion de plataformas moviles
    npm install
   >[!TIP]
   >Si tienes problemas con la instalación, prueba reiniciando tu terminal.
+3. Ejecutar el proyecto:
+   ```bash
+   node index.js
 
- ## Tecnologías Usadas
+## Tecnologías Usadas
 - Node.js
 - SQLServer
 
