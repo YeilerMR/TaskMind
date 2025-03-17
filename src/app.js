@@ -1,14 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import cookieParser from 'cookieParser';
+import cookieParser from 'cookie-parser';
 
-import Console from "./src/Lib/Console.js";
+import Console from "./Lib/Console.js";
 
 const logger = new Console("APP");
 
 // Importar Rutas
-import professorRoutes from "";
+import professorRoutes from "./routes/professorRoute.js";
 
 
 //Inicializar express para las consultas HTTP
@@ -21,7 +21,7 @@ app.use(cookieParser()); //Analiza las cookies junto las solicitudes entrantes a
 app.use(morgan("dev")); //Ayuda a depurar las peticiones HTTP.
 
 // Rutas
-app.use("", professorRoutes); //Ruta al API de profesor.
+app.use("/api", professorRoutes); //Ruta al API de profesor.
 
 //Manejo de errores generales
 app.use((err, req, res, next) => {

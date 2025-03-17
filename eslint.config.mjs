@@ -1,27 +1,19 @@
 import globals from "globals";
 import pluginJs from "@eslint/js";
+import importPlugin from "eslint-plugin-import";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-  { languageOptions: { globals: globals.browser } },
-  //pluginJs.configs.recommended,
   {
+    languageOptions: { globals: globals.browser },
+    plugins: {
+      import: importPlugin
+    },
     rules: {
-      "no-unused-vars": "warn",
-      "no-console": "off",
-      // quotes: ["error", "single", { avoidEscape: true }],
-      semi: ["error", "always"],
-      "prettier/prettier": [
-        "error",
-        {
-          semi: true,
-          bracketSpacing: true,
-          arrowParens: "always",
-          printWidth: 80,
-          endOfLine: "lf",
-          singleQuote: true,
-        },
-      ],
+      "import/no-unresolved": "error", // Detecta imports incorrectos
+      "import/named": "error",         // Asegura que los nombres importados existen en el módulo
+      "import/default": "error",       // Verifica imports por defecto
+      "import/no-extraneous-dependencies": "error", // Evita usar paquetes que no están en package.json
     },
   },
 ];

@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import dbConnection from "../database/dbConnection";
+import dbConnection from "../database/dbConnection.js";
 
 const Professor = dbConnection.define(
   "Professor",
@@ -37,7 +37,8 @@ const Professor = dbConnection.define(
   },
   {
     timestamps: false,
-    tableName: "dbo.tsit_teacher",
+    tableName: "tsit_teacher",
+    schema: "dbo"
   }
 );
 
