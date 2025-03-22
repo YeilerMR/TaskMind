@@ -7,7 +7,7 @@ import Console from "./Lib/Console.js";
 
 const logger = new Console("APP");
 
-import professorRoutes from "./routes/professorRoute.js";
+import professorRoutes from "./routes/professor.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 
 const app = express();
@@ -19,7 +19,7 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 
 // Rutas
-app.use("/api", professorRoutes);
+app.use("/api/professor", professorRoutes);
 app.use("/api/courses", courseRoutes);
 
 //Manejo de errores generales
