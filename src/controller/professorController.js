@@ -186,12 +186,10 @@ export const updateProfessor = async (req, res) => {
 
     await professor.update(updateData);
     logger.success("Profesor actualizado correctamente");
-    return res
-      .status(200)
-      .json({
-        message: "Profesor actualizado correctamente",
-        professor: professor,
-      });
+    return res.status(200).json({
+      message: "Profesor actualizado correctamente",
+      professor: professor,
+    });
   } catch (error) {
     logger.error(error.message);
     res.status(500).json({ message: error.message });
@@ -207,6 +205,16 @@ export const searchProfessor = async (req, res) => {
       orderByField = "DSC_NAME",
       order = "asc",
     } = req.query;
+
+    if (
+      !termSearch ||
+      typeof termSearch !== "string" ||
+      termSearch.trim() === ""
+    ) {
+      const message = "El término de búsqueda es obligatorio.";
+      logger.warning(message);
+      return res.status(400).json({ message });
+    }
     const limit = parseInt(pageSize);
     const offset = (parseInt(page) - 1) * limit;
 
@@ -231,12 +239,17 @@ export const searchProfessor = async (req, res) => {
       offset,
       order: [[field, sortOrder]],
       where: {
-        [Op.or]: [
-          { DSC_FIRST_NAME: expectedMatch },
-          { DSC_LAST_NAME_ONE: expectedMatch },
-          { DSC_LAST_NAME_TWO: expectedMatch },
-          { DSC_EMAIL: expectedMatch },
-          { STATUS: expectedMatch },
+        [Op.and]: [
+          { STATUS: 1 }, //Solo profesores con STATUS = 1
+          {
+            [Op.or]: [
+              { DSC_FIRST_NAME: expectedMatch },
+              { DSC_LAST_NAME_ONE: expectedMatch },
+              { DSC_LAST_NAME_TWO: expectedMatch },
+              { DSC_EMAIL: expectedMatch },
+              { STATUS: expectedMatch },
+            ],
+          },
         ],
       },
     });
