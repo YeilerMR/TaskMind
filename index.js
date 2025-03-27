@@ -1,7 +1,7 @@
 
 // import dbConnection from "./src/database/dbConnection.js";
 import Console from "./src/Lib/Console.js";
-import app from "./src/";
+import app from "./src/app.js";
 
 const logger = new Console('INDEX');
 const PORT = 4000
