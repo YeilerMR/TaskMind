@@ -43,7 +43,7 @@ export const courseSchema = z.object({
         .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/, {
             message: "El código de color debe ser un hexadecimal válido (6 u 8 caracteres).",
         }),
-    STATUS: z
+        STATUS: z
         .number({
             required_error: "El estado es obligatorio.",
             invalid_type_error: "El estado debe ser un número.",
@@ -56,7 +56,8 @@ export const courseSchema = z.object({
         })
         .max(1, {
             message: "El estado debe ser menor o igual a 1.",
-        }),
+        })
+        .default(1),
 });
 
 export default courseSchema;
