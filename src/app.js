@@ -9,6 +9,7 @@ import YAML from 'yaml';
 import Console from "./Lib/Console.js";
 import professorRoutes from "./routes/professor.routes.js";
 import courseRoutes from "./routes/course.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 const logger = new Console("APP");
 
@@ -27,6 +28,7 @@ const loadSwaggerDoc = (filePath) => {
 
 const professorDoc = loadSwaggerDoc('./swagger/professor.yml');
 const courseDoc = loadSwaggerDoc('./swagger/course.yml');
+const userDoc = loadSwaggerDoc('./swagger/user.yml');
 
 // Configurar Swagger UI con múltiples especificaciones
 const options = {
@@ -40,6 +42,10 @@ const options = {
             {
                 url: '/api-docs/course.json',
                 name: 'Courses'
+            },
+            {
+                url: '/api-docs/user.json',
+                name: 'Users'
             }
         ]
     }
@@ -60,12 +66,17 @@ app.get('/api-docs/course.json', (req, res) => {
     res.json(courseDoc);
 });
 
+app.get('/api-docs/user.json', (req, res) => {
+    res.json(userDoc);
+});
+
 // Ruta principal de Swagger UI
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(null, options));
 
 // Rutas de la aplicación
 app.use("/api/professor", professorRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/users",userRoutes);
 
 // Manejo de errores
 app.use((err, req, res, next) => {
