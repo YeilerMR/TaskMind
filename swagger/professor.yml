@@ -1,0 +1,456 @@
+openapi: 3.0.0
+info:
+  title: TaskMind API - Professors
+  version: 1.0.0
+  description: Endpoints para gestionar profesores en TaskMind
+servers:
+  - url: http://localhost:4000
+    description: Local server
+
+paths:
+  /api/professor/all_professors:
+    get:
+      summary: Obtiene todos los profesores activos.
+      description: Retorna una lista paginada de profesores activos (STATUS = 1).
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Número de página (por defecto 1).
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 5
+          description: Tamaño de la página (por defecto 5).
+        - in: query
+          name: orderByField
+          schema:
+            type: string
+            default: "DSC_FIRST_NAME"
+            enum:
+              - DSC_FIRST_NAME
+              - DSC_LAST_NAME_ONE
+              - DSC_EMAIL
+              - STATUS
+          description: Campo por el cual se ordenará la lista (por defecto DSC_FIRST_NAME).
+        - in: query
+          name: order
+          schema:
+            type: string
+            default: "asc"
+            enum:
+              - asc
+              - desc
+          description: Orden de la lista (ascendente o descendente, por defecto asc).
+      responses:
+        '200':
+          description: Lista de profesores obtenida exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: Total de profesores activos.
+                  totalPage:
+                    type: integer
+                    description: Número total de páginas.
+                  currentPage:
+                    type: integer
+                    description: Página actual.
+                  pageSize:
+                    type: integer
+                    description: Tamaño de la página.
+                  professors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ID_TEACHER:
+                          type: integer
+                          description: ID del profesor.
+                        DSC_FIRST_NAME:
+                          type: string
+                          description: Nombre del profesor.
+                        DSC_LAST_NAME_ONE:
+                          type: string
+                          description: Primer apellido del profesor.
+                        DSC_LAST_NAME_TWO:
+                          type: string
+                          description: Segundo apellido del profesor.
+                        DSC_EMAIL:
+                          type: string
+                          description: Correo electrónico del profesor.
+                        DSC_PHONE:
+                          type: string
+                          description: Teléfono del profesor.
+                        STATUS:
+                          type: integer
+                          description: Estado del profesor (1 = activo, 0 = inactivo).
+        '204':
+          description: No hay profesores registrados.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje indicando que no hay profesores registrados.
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error.
+
+  /api/professor/register_professor:
+    post:
+      summary: Registra un nuevo profesor.
+      description: Crea un nuevo profesor en la base de datos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                DSC_FIRST_NAME:
+                  type: string
+                  description: Nombre del profesor.
+                DSC_LAST_NAME_ONE:
+                  type: string
+                  description: Primer apellido del profesor.
+                DSC_LAST_NAME_TWO:
+                  type: string
+                  description: Segundo apellido del profesor.
+                DSC_EMAIL:
+                  type: string
+                  description: Correo electrónico del profesor.
+                DSC_PHONE:
+                  type: string
+                  description: Teléfono del profesor.
+                STATUS:
+                  type: integer
+                  description: Estado del profesor (1 = activo, 0 = inactivo).
+      responses:
+        '200':
+          description: Profesor registrado correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: Código de estado HTTP.
+                  message:
+                    type: string
+                    description: Mensaje de éxito.
+                  professor:
+                    type: object
+                    properties:
+                      ID_TEACHER:
+                        type: integer
+                        description: ID del profesor.
+                      DSC_FIRST_NAME:
+                        type: string
+                        description: Nombre del profesor.
+                      DSC_LAST_NAME_ONE:
+                        type: string
+                        description: Primer apellido del profesor.
+                      DSC_LAST_NAME_TWO:
+                        type: string
+                        description: Segundo apellido del profesor.
+                      DSC_EMAIL:
+                        type: string
+                        description: Correo electrónico del profesor.
+                      DSC_PHONE:
+                        type: string
+                        description: Teléfono del profesor.
+                      STATUS:
+                        type: integer
+                        description: Estado del profesor.
+        '400':
+          description: Campos incompletos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error indicando que faltan campos obligatorios.
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error.
+
+  /api/professor/delete_professor/{id}:
+    delete:
+      summary: Elimina un profesor (cambia su estado a inactivo).
+      description: Cambia el estado de un profesor a inactivo (STATUS = 0).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del profesor a eliminar.
+      responses:
+        '200':
+          description: Profesor eliminado correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de éxito.
+        '404':
+          description: Profesor no encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje indicando que el profesor no fue encontrado.
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error.
+
+  /api/professor/update_professor/{id}:
+    put:
+      summary: Actualiza un profesor existente.
+      description: Actualiza los datos de un profesor existente en la base de datos.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del profesor a actualizar.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                DSC_FIRST_NAME:
+                  type: string
+                  description: Nombre del profesor.
+                DSC_LAST_NAME_ONE:
+                  type: string
+                  description: Primer apellido del profesor.
+                DSC_LAST_NAME_TWO:
+                  type: string
+                  description: Segundo apellido del profesor.
+                DSC_EMAIL:
+                  type: string
+                  description: Correo electrónico del profesor.
+                DSC_PHONE:
+                  type: string
+                  description: Teléfono del profesor.
+                STATUS:
+                  type: integer
+                  description: Estado del profesor (1 = activo, 0 = inactivo).
+      responses:
+        '200':
+          description: Profesor actualizado correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de éxito.
+                  professor:
+                    type: object
+                    properties:
+                      ID_TEACHER:
+                        type: integer
+                        description: ID del profesor.
+                      DSC_FIRST_NAME:
+                        type: string
+                        description: Nombre del profesor.
+                      DSC_LAST_NAME_ONE:
+                        type: string
+                        description: Primer apellido del profesor.
+                      DSC_LAST_NAME_TWO:
+                        type: string
+                        description: Segundo apellido del profesor.
+                      DSC_EMAIL:
+                        type: string
+                        description: Correo electrónico del profesor.
+                      DSC_PHONE:
+                        type: string
+                        description: Teléfono del profesor.
+                      STATUS:
+                        type: integer
+                        description: Estado del profesor.
+        '404':
+          description: Profesor no encontrado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje indicando que el profesor no fue encontrado.
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error.
+
+  /api/professor/search_professor:
+    get:
+      summary: Busca profesores por término.
+      description: Busca profesores activos (STATUS = 1) que coincidan con un término de búsqueda.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Número de página (por defecto 1).
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 5
+          description: Tamaño de la página (por defecto 5).
+        - in: query
+          name: termSearch
+          schema:
+            type: string
+          description: Término de búsqueda (obligatorio).
+        - in: query
+          name: orderByField
+          schema:
+            type: string
+            default: "DSC_FIRST_NAME"
+            enum:
+              - DSC_FIRST_NAME
+              - DSC_LAST_NAME_ONE
+              - DSC_LAST_NAME_TWO
+              - DSC_EMAIL
+              - STATUS
+          description: Campo por el cual se ordenará la lista (por defecto DSC_FIRST_NAME).
+        - in: query
+          name: order
+          schema:
+            type: string
+            default: "asc"
+            enum:
+              - asc
+              - desc
+          description: Orden de la lista (ascendente o descendente, por defecto asc).
+      responses:
+        '200':
+          description: Profesores encontrados exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: Total de profesores encontrados.
+                  totalPage:
+                    type: integer
+                    description: Número total de páginas.
+                  currentPage:
+                    type: integer
+                    description: Página actual.
+                  pageSize:
+                    type: integer
+                    description: Tamaño de la página.
+                  professors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ID_TEACHER:
+                          type: integer
+                          description: ID del profesor.
+                        DSC_FIRST_NAME:
+                          type: string
+                          description: Nombre del profesor.
+                        DSC_LAST_NAME_ONE:
+                          type: string
+                          description: Primer apellido del profesor.
+                        DSC_LAST_NAME_TWO:
+                          type: string
+                          description: Segundo apellido del profesor.
+                        DSC_EMAIL:
+                          type: string
+                          description: Correo electrónico del profesor.
+                        DSC_PHONE:
+                          type: string
+                          description: Teléfono del profesor.
+                        STATUS:
+                          type: integer
+                          description: Estado del profesor.
+        '204':
+          description: No se encontraron profesores con los criterios de búsqueda.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje indicando que no se encontraron profesores.
+        '400':
+          description: El término de búsqueda es obligatorio.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje indicando que el término de búsqueda es obligatorio.
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error.

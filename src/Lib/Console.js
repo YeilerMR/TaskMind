@@ -18,6 +18,10 @@ class Console {
     error(message) {
         console.log(`${chalk.bgRed(`[${this.moduleName}]`)} ${chalk.gray(new Date().toUTCString())} ${message}`);
     }
+
+    info(message) {
+        console.log(`${chalk.bgCyan(`[${this.moduleName}]`)} ${chalk.gray(new Date().toUTCString())} ${message}`);
+    }
 }
 
 // Exportar la clase usando ES Modules
