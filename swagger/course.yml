@@ -1,0 +1,276 @@
+openapi: 3.0.0
+info:
+  title: TaskMind API - Courses
+  version: 1.0.0
+  description: Endpoints para gestionar cursos en TaskMind
+servers:
+  - url: http://localhost:4000
+    description: Local server
+
+paths:
+  /api/courses/register:
+    post:
+      summary: Registra un nuevo curso
+      description: Crea un nuevo curso en la base de datos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - DSC_NAME
+                - ID_TEACHER
+                - DSC_CODE
+              properties:
+                DSC_NAME:
+                  type: string
+                  description: Nombre del curso
+                ID_TEACHER:
+                  type: integer
+                  description: ID del profesor asignado
+                DSC_CODE:
+                  type: string
+                  description: Código único del curso
+                DSC_ATTENTION:
+                  type: string
+                  description: Horario de atención
+                DSC_COLOR:
+                  type: string
+                  description: Color representativo del curso
+      responses:
+        '200':
+          description: Curso registrado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  course:
+                    $ref: '#/components/schemas/Course'
+        '400':
+          description: Error en validación de datos
+        '500':
+          description: Error interno del servidor
+
+  /api/courses/all_course:
+    get:
+      summary: Obtiene todos los cursos activos
+      description: Retorna lista paginada de cursos con status activo (STATUS = 1)
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Número de página
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 10
+          description: Tamaño de página
+        - in: query
+          name: orderByField
+          schema:
+            type: string
+            default: "DSC_NAME"
+            enum: [DSC_NAME, DSC_CODE, DSC_ATTENTION]
+          description: Campo para ordenar
+        - in: query
+          name: order
+          schema:
+            type: string
+            default: "asc"
+            enum: [asc, desc]
+          description: Dirección del orden
+      responses:
+        '200':
+          description: Lista de cursos obtenida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  currentPage:
+                    type: integer
+                  pageSize:
+                    type: integer
+                  courses:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CourseWithProfessor'
+        '204':
+          description: No se encontraron cursos
+        '500':
+          description: Error interno del servidor
+
+  /api/courses/search_course:
+    get:
+      summary: Busca cursos por término
+      description: Busca cursos activos que coincidan con el término de búsqueda
+      parameters:
+        - in: query
+          name: termSearch
+          required: true
+          schema:
+            type: string
+          description: Término de búsqueda
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 5
+        - in: query
+          name: orderByField
+          schema:
+            type: string
+            default: "DSC_NAME"
+            enum: [DSC_NAME, DSC_CODE, DSC_ATTENTION]
+        - in: query
+          name: order
+          schema:
+            type: string
+            default: "asc"
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: Resultados de búsqueda
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  currentPage:
+                    type: integer
+                  pageSize:
+                    type: integer
+                  courses:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CourseWithProfessor'
+        '204':
+          description: No se encontraron resultados
+        '400':
+          description: Término de búsqueda requerido
+        '500':
+          description: Error interno del servidor
+
+  /api/courses/update_course/{id}:
+    put:
+      summary: Actualiza un curso existente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del curso a actualizar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                DSC_NAME:
+                  type: string
+                ID_TEACHER:
+                  type: integer
+                DSC_CODE:
+                  type: string
+                DSC_ATTENTION:
+                  type: string
+                DSC_COLOR:
+                  type: string
+                STATUS:
+                  type: integer
+      responses:
+        '200':
+          description: Curso actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          description: Curso no encontrado
+        '500':
+          description: Error interno del servidor
+
+  /api/courses/delete_course/{id}:
+    delete:
+      summary: Elimina un curso (cambia status a 0)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del curso a eliminar
+      responses:
+        '200':
+          description: Curso eliminado exitosamente
+        '404':
+          description: Curso no encontrado
+        '500':
+          description: Error interno del servidor
+
+components:
+  schemas:
+    Course:
+      type: object
+      properties:
+        ID_COURSE:
+          type: integer
+        DSC_NAME:
+          type: string
+        ID_TEACHER:
+          type: integer
+        DSC_CODE:
+          type: string
+        DSC_ATTENTION:
+          type: string
+        DSC_COLOR:
+          type: string
+        STATUS:
+          type: integer
+
+    CourseWithProfessor:
+      type: object
+      properties:
+        ID_COURSE:
+          type: integer
+        DSC_NAME:
+          type: string
+        DSC_CODE:
+          type: string
+        DSC_ATTENTION:
+          type: string
+        DSC_COLOR:
+          type: string
+        STATUS:
+          type: integer
+        Professor:
+          type: object
+          properties:
+            DSC_FIRST_NAME:
+              type: string
+            DSC_LAST_NAME_ONE:
+              type: string
+            DSC_LAST_NAME_TWO:
+              type: string
