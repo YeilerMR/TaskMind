@@ -37,6 +37,9 @@ export const getAllCourses = async (req, res) => {
         const { page = 1, pageSize = 10, orderByField = 'DSC_NAME', order = 'asc' } = req.query;
         const limit = parseInt(pageSize);
         const offset = (parseInt(page) - 1) * limit;
+        if (limit < 1 || offset < 1) {
+            return res.status(400).json({ message: "Parámetros de paginación inválidos." });
+        }
 
         const field = (
             orderByField === 'DSC_NAME' || orderByField === 'DSC_CODE' || orderByField === 'DSC_ATTENTION'
@@ -82,10 +85,15 @@ export const getAllCourses = async (req, res) => {
 
 export const deleteCourse = async (req, res) => {
     try {
+        const courseId = parseInt(req.params.id);
+        if (isNaN(courseId) || courseId <= 0) {
+            return res.status(400).json({ message: "ID de curso inválido." });
+        }
+
         const course = await Course.findOne({
             where: { ID_COURSE: req.params.id },
         });
-        console.log(course);
+
         if (!course) {
             const message = "Curso no encontrado.";
             logger.error(message);
@@ -120,6 +128,7 @@ export const updateCourse = async (req, res) => {
             logger.error(`Error al actualizar el curso: ${error}`);
             return res.status(400).json({ message: error });
         }
+        
         return res.json({ message: "Curso actualizado correctamente", course });
     } catch (error) {
         logger.error(`Error inesperado al actualizar el curso: ${error.message}`);
