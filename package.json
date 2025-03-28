@@ -29,6 +29,7 @@
     "sequelize": "^6.37.6",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "tedious": "^18.6.1",
     "yaml": "^2.7.0",
     "zod": "^3.24.2"
   },
