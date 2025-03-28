@@ -6,10 +6,10 @@ import { courseSchema } from "../schema/course.schema.js";
 const router = Router();
 
 // Parte de administración de courses
-router.post("/register", /*auth,*/ validateSchema(courseSchema), registerCourse);
+router.post("/register", /*auth,*/ registerCourse);
 router.get('/all_course', getAllCourses);
 router.get("/search_course", /*auth,*/ searchCourse);
-router.put("/update_course/:id", /*auth,*/ validateSchema(courseSchema), updateCourse);
+router.put("/update_course/:id", /*auth,*/ updateCourse);
 router.delete("/delete_course/:id", /*auth,*/ deleteCourse);
 
 export default router;
