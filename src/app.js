@@ -9,6 +9,8 @@ import YAML from 'yaml';
 import Console from "./Lib/Console.js";
 import professorRoutes from "./routes/professor.routes.js";
 import courseRoutes from "./routes/course.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import loginRoute from "./routes/logic.routes.js"
 
 const logger = new Console("APP");
 
@@ -27,6 +29,8 @@ const loadSwaggerDoc = (filePath) => {
 
 const professorDoc = loadSwaggerDoc('./swagger/professor.yml');
 const courseDoc = loadSwaggerDoc('./swagger/course.yml');
+const userDoc = loadSwaggerDoc('./swagger/user.yml');
+const loginDoc = loadSwaggerDoc('./swagger/login.yml');
 
 // Configure Swagger UI with multiple specs
 const options = {
@@ -40,6 +44,14 @@ const options = {
             {
                 url: '/api-docs/course.json',
                 name: 'Courses'
+            },
+            {
+                url: '/api-docs/user.json',
+                name: 'Users'
+            },
+            {
+                url: '/api-docs/login.json',
+                name: 'Login'
             }
         ]
     }
@@ -60,12 +72,22 @@ app.get('/api-docs/course.json', (req, res) => {
     res.json(courseDoc);
 });
 
-// Main route for Swagger UI
+app.get('/api-docs/user.json', (req, res) => {
+    res.json(userDoc);
+});
+
+app.get('/api-docs/login.json', (req, res) => {
+    res.json(loginDoc);
+});
+
+// Ruta principal de Swagger UI
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(null, options));
 
 // Application routes
 app.use("/api/professor", professorRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/users",userRoutes);
+app.use("/api/Auth",loginRoute);
 
 // Error management
 app.use((err, req, res, next) => {

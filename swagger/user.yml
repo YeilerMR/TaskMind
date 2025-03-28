@@ -1,0 +1,244 @@
+openapi: 3.0.0
+info:
+  title: User API
+  description: API para el registro, actualización y eliminación de usuarios
+  version: 1.0.0
+
+paths:
+  /api/users/registerUser:
+    post:
+      summary: Registrar un nuevo usuario
+      description: Registra un nuevo usuario en la base de datos.
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                DSC_FIRST_NAME:
+                  type: string
+                  example: "Juan"
+                  minLength: 3
+                  maxLength: 50
+                DSC_LAST_NAME_ONE:
+                  type: string
+                  example: "Pérez"
+                  minLength: 3
+                  maxLength: 50
+                DSC_EMAIL:
+                  type: string
+                  example: "juan.perez@example.com"
+                  format: email
+                  maxLength: 100
+                DSC_PASSWORD:
+                  type: string
+                  example: "securePassword123"
+                  minLength: 8
+                  maxLength: 255
+                CONFIRM_PASSWORD:
+                  type: string
+                  example: "securePassword123"
+                  minLength: 8
+                  maxLength: 255
+                DSC_CAREER:
+                  type: string
+                  example: "Ingeniería en Sistemas"
+                  minLength: 3
+                  maxLength: 255
+              required:
+                - DSC_FIRST_NAME
+                - DSC_LAST_NAME_ONE
+                - DSC_EMAIL
+                - DSC_PASSWORD
+                - CONFIRM_PASSWORD
+                - DSC_CAREER
+      responses:
+        '200':
+          description: Usuario registrado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ID_USER:
+                    type: integer
+                  DSC_FIRST_NAME:
+                    type: string
+                  DSC_EMAIL:
+                    type: string
+                  DSC_CAREER:
+                    type: string
+                  message:
+                    type: string
+                    example: "Registro realizado correctamente."
+        '400':
+          description: Error de validación o usuario ya registrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Las contraseñas no coinciden."
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Error interno del servidor"
+
+  /api/users/updateUser/{id}:
+    put:
+      summary: Actualizar datos de un usuario
+      description: Actualiza los datos de un usuario específico.
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                DSC_FIRST_NAME:
+                  type: string
+                  example: "Juan"
+                  minLength: 3
+                  maxLength: 50
+                DSC_LAST_NAME_ONE:
+                  type: string
+                  example: "Pérez"
+                  minLength: 3
+                  maxLength: 50
+                DSC_PASSWORD:
+                  type: string
+                  example: "newSecurePassword123"
+                  minLength: 8
+                  maxLength: 255
+                CONFIRM_PASSWORD:
+                  type: string
+                  example: "newSecurePassword123"
+                  minLength: 8
+                  maxLength: 255
+                DSC_CAREER:
+                  type: string
+                  example: "Ingeniería en Sistemas"
+                  minLength: 3
+                  maxLength: 255
+              required:
+                - DSC_FIRST_NAME
+                - DSC_LAST_NAME_ONE
+                - DSC_PASSWORD
+                - CONFIRM_PASSWORD
+                - DSC_CAREER
+      responses:
+        '200':
+          description: Usuario actualizado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Usuario actualizado correctamente"
+        '400':
+          description: Error de validación o datos inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Las contraseñas no coinciden"
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Error al cargar el usuario."
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Error interno del servidor"
+
+  /api/users/deleteUser/{id}:
+    put:
+      summary: Eliminar un usuario
+      description: Cambia el estado del usuario a inactivo (STATUS = 0) en lugar de eliminarlo físicamente.
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Usuario eliminado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Usuario eliminado correctamente"
+        '400':
+          description: Error de validación o ID inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ID inválido."
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Error al cargar el usuario."
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Error interno del servidor"
