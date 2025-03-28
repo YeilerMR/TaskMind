@@ -5,21 +5,6 @@ import { Op } from 'sequelize';
 import Console from "../Lib/Console.js";
 const logger = new Console("P_CONTROLLER");
 
-function isNotEmpty(value) {
-    if (typeof value === 'string') {
-        return value.trim().length > 0;
-    } else if (typeof value === 'number') {
-        return !isNaN(value);
-    }
-    return false;
-}
-
-async function isValidProfessor(ID_TEACHER) {
-    if (!isNotEmpty(ID_TEACHER)) return false;
-    const professor = await Professor.findOne({ where: { ID_TEACHER } });
-    return !!professor;
-}
-
 export const registerCourse = async (req, res) => {
     try {
         const { DSC_NAME, ID_TEACHER, DSC_CODE, DSC_ATTENTION, DSC_COLOR } = req.body;

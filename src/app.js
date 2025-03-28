@@ -14,7 +14,7 @@ const logger = new Console("APP");
 
 const app = express();
 
-// Cargar documentos Swagger
+// Load Swagger Docs
 const loadSwaggerDoc = (filePath) => {
     try {
         const file = fs.readFileSync(filePath, 'utf8');
@@ -28,7 +28,7 @@ const loadSwaggerDoc = (filePath) => {
 const professorDoc = loadSwaggerDoc('./swagger/professor.yml');
 const courseDoc = loadSwaggerDoc('./swagger/course.yml');
 
-// Configurar Swagger UI con múltiples especificaciones
+// Configure Swagger UI with multiple specs
 const options = {
     explorer: true,
     swaggerOptions: {
@@ -51,7 +51,7 @@ app.use(express.json({ limit: "70mb" }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 
-// Rutas para documentos Swagger
+// Routes for Swagger docs
 app.get('/api-docs/professor.json', (req, res) => {
     res.json(professorDoc);
 });
@@ -60,14 +60,14 @@ app.get('/api-docs/course.json', (req, res) => {
     res.json(courseDoc);
 });
 
-// Ruta principal de Swagger UI
+// Main route for Swagger UI
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(null, options));
 
-// Rutas de la aplicación
+// Application routes
 app.use("/api/professor", professorRoutes);
 app.use("/api/courses", courseRoutes);
 
-// Manejo de errores
+// Error management
 app.use((err, req, res, next) => {
     logger.error(`Error: ${err.message}`);
     res.status(500).send('Error interno en el servidor.');

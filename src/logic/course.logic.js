@@ -2,13 +2,13 @@ import { courseSchema } from "../schema/course.schema.js";
 import Professor from "../model/professorModel.js";
 import Course from "../model/course.model.js";
 
-// Función para verificar si el profesor es válido
+// Function to check if the professor is valid
 export const isValidProfessor = async (ID_TEACHER) => {
     const professor = await Professor.findOne({ where: { ID_TEACHER } });
     return !!professor;
 };
 
-// Función para validar el tipo de datos
+// Function to validate data types
 export const validateCourse = (courseData) => {
     const validatedData = {
         DSC_NAME: courseData.DSC_NAME !== undefined ? String(courseData.DSC_NAME).trim() : null,
@@ -54,7 +54,7 @@ export const validateCourse = (courseData) => {
     return null;
 };
 
-// Función para crear un nuevo curso
+// Function to create a new course
 export const createCourseLogic = async ({ DSC_NAME, ID_TEACHER, DSC_CODE, DSC_ATTENTION, DSC_COLOR }) => {
 
     const validationError = validateCourse({
@@ -87,7 +87,7 @@ export const createCourseLogic = async ({ DSC_NAME, ID_TEACHER, DSC_CODE, DSC_AT
     return { course: courseSaved };
 };
 
-// Función para actualizar un curso
+// Function to update an existing course
 export const updateCourseLogic = async (courseId, { DSC_NAME, ID_TEACHER, DSC_CODE, DSC_ATTENTION, DSC_COLOR, STATUS }) => {
     console.log(DSC_NAME, ID_TEACHER, DSC_CODE, DSC_ATTENTION, DSC_COLOR, STATUS);
     const validationError = validateCourse({
