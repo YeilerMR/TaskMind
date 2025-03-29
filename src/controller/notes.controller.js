@@ -118,22 +118,22 @@ export const getAllNotes = async (req, res) => {
 
 export const deleteNote = async (req, res) => {
     try {
-        // Buscar la nota por ID
+        // Search note by ID
         const note = await Notes.findOne({
             where: { ID_STUDENT_NOTE: req.params.id },
         });
 
-        // Verificar si la nota existe
+        // Verify if the note exist
         if (!note) {
             const message = "Nota no encontrada.";
             logger.error(message);
             return res.status(404).json({ message });
         }
 
-        // Eliminar físicamente el registro
+        // Delete note from db
         await note.destroy();
 
-        // Log y respuesta exitosa
+        // Log and success respond
         logger.success(`Nota "${note.DSC_TITLE}" (ID: ${note.ID_STUDENT_NOTE}) eliminada permanentemente.`);
         return res.json({ 
             success: true,

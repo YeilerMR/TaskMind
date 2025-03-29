@@ -15,7 +15,6 @@ export const validateRegisterUser = (req) => {
         DSC_CAREER
     } = req.body;
 
-    // Lista de campos requeridos
     const fields = [
         { field: DSC_FIRST_NAME, name: 'NOMBRE_USUARIO' },
         { field: DSC_LAST_NAME_ONE, name: 'APELLIDO' },
@@ -40,7 +39,6 @@ export const validateUpdateUser = (req) => {
         DSC_FIRST_NAME, DSC_LAST_NAME_ONE, DSC_CAREER
     } = req.body;
 
-    // Lista de campos requeridos
     const fields = [
         { field: DSC_FIRST_NAME, name: 'Nombre' },
         { field: DSC_LAST_NAME_ONE, name: 'Apellido' },

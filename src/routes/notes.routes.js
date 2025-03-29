@@ -5,7 +5,6 @@ import { noteSchema } from "../schema/notes.schema.js";
 
 const router = Router();
 
-// Parte de administración de courses
 router.post("/register", /*auth,*/ registerNote);
 router.get('/all_notes', getAllNotes);
 router.get("/search_note", /*auth,*/ searchNotes);

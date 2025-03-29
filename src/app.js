@@ -34,7 +34,7 @@ const userDoc = loadSwaggerDoc('./swagger/user.yml');
 const loginDoc = loadSwaggerDoc('./swagger/login.yml');
 const noteDoc = loadSwaggerDoc('./swagger/note.yml');
 
-// Configurar Swagger UI con múltiples especificaciones
+// configure swagger UI
 const options = {
     explorer: true,
     swaggerOptions: {
@@ -92,7 +92,7 @@ app.get('/api-docs/note.json', (req, res) => {
     res.json(noteDoc);
 });
 
-// Ruta principal de Swagger UI
+// principal routes for swagger UI
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(null, options));
 
 // Application routes

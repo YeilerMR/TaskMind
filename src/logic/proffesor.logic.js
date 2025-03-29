@@ -13,10 +13,10 @@ function isNotEmpty(value) {
   return false;
 }
 
-//OBTENER TODOS LOS PROFESORES
+// function to get all professors
 export const getProfessors = async (req) => {
   try {
-    //Parametros para paginacion (No necesario)
+    // Pagination params
     const {
       page = 1,
       pageSize = 5,
@@ -25,7 +25,7 @@ export const getProfessors = async (req) => {
     } = req.query;
     const limit = parseInt(pageSize);
     const offset = (parseInt(page) - 1) * limit;
-    //Validar los campos de ordenamiento
+    
     const field = [
       "DSC_FIRST_NAME",
       "DSC_LAST_NAME_ONE",
@@ -33,32 +33,31 @@ export const getProfessors = async (req) => {
       "STATUS",
     ].includes(orderByField)
       ? orderByField
-      : "DSC_FIRST_NAME"; //Campo de ordenamiento por default.
+      : "DSC_FIRST_NAME";
 
-    //Validar el orden
+    // validation for order
     const sortOrder = ["asc", "desc"].includes(order.toLowerCase())
       ? order.toLowerCase()
       : "asc";
-    //Consulta a la base de datos
+    
     const { count, rows } = await Professor.findAndCountAll({
       where: {
-        STATUS: 1, // Solo profesores activos
+        STATUS: 1, 
       },
       limit,
       offset,
       order: [
-        [field, sortOrder], // ordena segun el campo y el orden especificados
+        [field, sortOrder],
       ],
-      distinct: true, // Asegura que el conteo sea preciso cuando haya relacion
+      distinct: true,
     });
 
-    //     //Si no encuentra profesores, retorna el mensaje
     if (rows.length === 0) {
       const message = "No hay profesores registrados.";
       logger.warning(message);
       return { message: message, status: 204 };
     }
-    // Retorna una lista con los profesores registrados
+    
     return {
       success: true,
       data: {
@@ -76,7 +75,7 @@ export const getProfessors = async (req) => {
   }
 };
 
-//AGREGAR UN PROFESOR
+// add new professor
 export const addProfessor = async (req) => {
   var message = "Todos los campos son necesarios";
   try {
@@ -90,7 +89,7 @@ export const addProfessor = async (req) => {
     } = req.body;
     logger.info("Datos recividos de la peticion: ", req.DSC_FIRST_NAME);
 
-    //Validacion para los campos vacios
+    // validations for empty fields
     if (
       !isNotEmpty(DSC_FIRST_NAME) ||
       !isNotEmpty(DSC_LAST_NAME_ONE) ||
@@ -113,7 +112,6 @@ export const addProfessor = async (req) => {
 
     message = "Profesor registrado correctamente";
     logger.success(message);
-    //Retornar la respuesta a la controller
     return {
       status: 201,
       message: message,
@@ -126,7 +124,7 @@ export const addProfessor = async (req) => {
   }
 };
 
-//ELIMINAR UN PROFESOR
+// delete an existing professor
 export const eliminateProfessor = async (req) => {
   try {
     let message = "Profesor no encontrado";
@@ -153,7 +151,7 @@ export const eliminateProfessor = async (req) => {
   }
 };
 
-//ACTUALIZAR UN PROFESOR
+// update and existing professor
 export const modifyProfessor = async (req) => {
   try {
     const {
@@ -189,7 +187,7 @@ export const modifyProfessor = async (req) => {
   }
 };
 
-//BUSCAR UN PROFESOR POR TERMINO
+// search proffessor by term
 export const findProfessor = async (req) => {
   try {
     const {
@@ -235,7 +233,7 @@ export const findProfessor = async (req) => {
       order: [[field, sortOrder]],
       where: {
         [Op.and]: [
-          { STATUS: 1 }, //Solo profesores con STATUS = 1
+          { STATUS: 1 },
           {
             [Op.or]: [
               { DSC_FIRST_NAME: expectedMatch },
