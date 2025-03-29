@@ -30,16 +30,8 @@ const Course = dbConnection.define(
         DSC_ATTENTION: {
             type: DataTypes.STRING(255),
             allowNull: true,
-        },
-        DSC_COLOR: {
-            type: DataTypes.STRING(8),
-            allowNull: false,
-        },
-        STATUS: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            defaultValue: 1,
         }
+       
     },
     {
         timestamps: false,
