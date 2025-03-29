@@ -3,8 +3,8 @@ import dbConnection from "../database/dbConnection.js";
 import Course from "./course.model.js";
 import User from "./user.model.js";
 
-const Notes = dbConnection.define(
-    "Notes",
+const Note = dbConnection.define(
+    "notes",
     {
         ID_STUDENT_NOTE: {
             type: DataTypes.INTEGER,
@@ -37,21 +37,21 @@ const Notes = dbConnection.define(
             allowNull: false,
           },
           DATE_NOTE: {
-            type: DataTypes.DATE,
+            type: DataTypes.STRING(255),
             allowNull: false,
           }
     },
      {
         timestamps: false,
         tableName: "tsim_student_class_note",
-        schema: "dbo",
+        
     }
     
 );
-Notes.belongsTo(User, { foreignKey: "ID_USER" });
-User.hasMany(Notes, { foreignKey: "ID_USER" });
+Note.belongsTo(User, { foreignKey: "ID_USER" });
+User.hasMany(Note, { foreignKey: "ID_USER" });
 
-Notes.belongsTo(Course, { foreignKey: "ID_COURSE" });
-Course.hasMany(Notes, { foreignKey: "ID_COURSE" });
+Note.belongsTo(Course, { foreignKey: "ID_COURSE" });
+Course.hasMany(Note, { foreignKey: "ID_COURSE" });
 
-export default Notes;
+export default Note;

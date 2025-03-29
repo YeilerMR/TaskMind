@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import dbConnection from "../database/dbConnection.js";
 import Professor from "./professorModel.js";
+import User from "./user.model.js";
 
 const Course = dbConnection.define(
     "Course",
@@ -23,6 +24,14 @@ const Course = dbConnection.define(
             },
             allowNull: false,
         },
+        ID_USER: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: User,
+                key: "ID_USER"
+            },
+            allowNull: false,
+        },
         DSC_CODE: {
             type: DataTypes.STRING(50),
             allowNull: true,
@@ -35,11 +44,6 @@ const Course = dbConnection.define(
             type: DataTypes.STRING(8),
             allowNull: false,
         },
-        STATUS: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            defaultValue: 1,
-        }
     },
     {
         timestamps: false,
@@ -47,6 +51,9 @@ const Course = dbConnection.define(
         schema: "dbo",
     }
 );
+
+Course.belongsTo(User, { foreignKey: "ID_USER" });
+User.hasMany(Course, { foreignKey: "ID_USER" });
 
 Course.belongsTo(Professor, { foreignKey: "ID_TEACHER" });
 Professor.hasMany(Course, { foreignKey: "ID_TEACHER" });
