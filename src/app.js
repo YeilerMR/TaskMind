@@ -9,12 +9,15 @@ import YAML from 'yaml';
 import Console from "./Lib/Console.js";
 import professorRoutes from "./routes/professor.routes.js";
 import courseRoutes from "./routes/course.routes.js";
+import noteRoutes from "./routes/notes.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import loginRoute from "./routes/logic.routes.js"
 
 const logger = new Console("APP");
 
 const app = express();
 
-// Cargar documentos Swagger
+// Load Swagger Docs
 const loadSwaggerDoc = (filePath) => {
     try {
         const file = fs.readFileSync(filePath, 'utf8');
@@ -27,6 +30,9 @@ const loadSwaggerDoc = (filePath) => {
 
 const professorDoc = loadSwaggerDoc('./swagger/professor.yml');
 const courseDoc = loadSwaggerDoc('./swagger/course.yml');
+const userDoc = loadSwaggerDoc('./swagger/user.yml');
+const loginDoc = loadSwaggerDoc('./swagger/login.yml');
+const noteDoc = loadSwaggerDoc('./swagger/note.yml');
 
 // Configurar Swagger UI con múltiples especificaciones
 const options = {
@@ -40,6 +46,19 @@ const options = {
             {
                 url: '/api-docs/course.json',
                 name: 'Courses'
+            },
+            {
+                url: '/api-docs/user.json',
+                name: 'Users'
+            },
+            {
+                url: '/api-docs/login.json',
+                name: 'Login'
+            }
+            ,
+            {
+                url: '/api-docs/note.json',
+                name: 'Notes'
             }
         ]
     }
@@ -51,7 +70,7 @@ app.use(express.json({ limit: "70mb" }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 
-// Rutas para documentos Swagger
+// Routes for Swagger docs
 app.get('/api-docs/professor.json', (req, res) => {
     res.json(professorDoc);
 });
@@ -60,14 +79,30 @@ app.get('/api-docs/course.json', (req, res) => {
     res.json(courseDoc);
 });
 
+
+app.get('/api-docs/user.json', (req, res) => {
+    res.json(userDoc);
+});
+
+app.get('/api-docs/login.json', (req, res) => {
+    res.json(loginDoc);
+});
+
+app.get('/api-docs/note.json', (req, res) => {
+    res.json(noteDoc);
+});
+
 // Ruta principal de Swagger UI
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(null, options));
 
-// Rutas de la aplicación
+// Application routes
 app.use("/api/professor", professorRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/notes", noteRoutes);
+app.use("/api/users",userRoutes);
+app.use("/api/Auth",loginRoute);
 
-// Manejo de errores
+// Error management
 app.use((err, req, res, next) => {
     logger.error(`Error: ${err.message}`);
     res.status(500).send('Error interno en el servidor.');
