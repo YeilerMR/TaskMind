@@ -26,20 +26,29 @@ paths:
                 DSC_NAME:
                   type: string
                   description: Nombre del curso
+                  example: "Programación I"
+                  minLenght: 5
+                  maxLength: 100
                 ID_TEACHER:
                   type: integer
                   description: ID del profesor asignado
+                  example: 1
                 DSC_CODE:
                   type: string
                   description: Código único del curso
+                  example: "EIF201"
+                  maxLength: 50
                 DSC_ATTENTION:
                   type: string
                   description: Horario de atención
+                  example: Lunes 1
+                  maxLength: 255
                 DSC_COLOR:
                   type: string
                   description: Color representativo del curso
+                  example: "#ff5733"
       responses:
-        '200':
+        "200":
           description: Curso registrado exitosamente
           content:
             application/json:
@@ -49,16 +58,16 @@ paths:
                   status:
                     type: integer
                   course:
-                    $ref: '#/components/schemas/Course'
-        '400':
+                    $ref: "#/components/schemas/Course"
+        "400":
           description: Error en validación de datos
-        '500':
+        "500":
           description: Error interno del servidor
 
   /api/courses/all_course:
     get:
-      summary: Obtiene todos los cursos activos
-      description: Retorna lista paginada de cursos con status activo (STATUS = 1)
+      summary: Obtiene todos los cursos (activos por defecto)
+      description: Retorna una lista paginada de cursos. Por defecto, solo incluye los cursos activos (STATUS = 1), pero se pueden incluir los inactivos mediante un parámetro opcional.
       parameters:
         - in: query
           name: page
@@ -86,8 +95,14 @@ paths:
             default: "asc"
             enum: [asc, desc]
           description: Dirección del orden
+        - in: query
+          name: includeInactive
+          schema:
+            type: boolean
+            default: false
+          description: Si es `true`, incluye los cursos inactivos en la respuesta
       responses:
-        '200':
+        "200":
           description: Lista de cursos obtenida
           content:
             application/json:
@@ -105,10 +120,10 @@ paths:
                   courses:
                     type: array
                     items:
-                      $ref: '#/components/schemas/CourseWithProfessor'
-        '204':
+                      $ref: "#/components/schemas/CourseWithProfessor"
+        "204":
           description: No se encontraron cursos
-        '500':
+        "500":
           description: Error interno del servidor
 
   /api/courses/search_course:
@@ -145,7 +160,7 @@ paths:
             default: "asc"
             enum: [asc, desc]
       responses:
-        '200':
+        "200":
           description: Resultados de búsqueda
           content:
             application/json:
@@ -163,12 +178,12 @@ paths:
                   courses:
                     type: array
                     items:
-                      $ref: '#/components/schemas/CourseWithProfessor'
-        '204':
+                      $ref: "#/components/schemas/CourseWithProfessor"
+        "204":
           description: No se encontraron resultados
-        '400':
+        "400":
           description: Término de búsqueda requerido
-        '500':
+        "500":
           description: Error interno del servidor
 
   /api/courses/update_course/{id}:
@@ -201,15 +216,15 @@ paths:
                 STATUS:
                   type: integer
       responses:
-        '200':
+        "200":
           description: Curso actualizado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Course'
-        '404':
+                $ref: "#/components/schemas/Course"
+        "404":
           description: Curso no encontrado
-        '500':
+        "500":
           description: Error interno del servidor
 
   /api/courses/delete_course/{id}:
@@ -223,11 +238,11 @@ paths:
             type: integer
           description: ID del curso a eliminar
       responses:
-        '200':
+        "200":
           description: Curso eliminado exitosamente
-        '404':
+        "404":
           description: Curso no encontrado
-        '500':
+        "500":
           description: Error interno del servidor
 
 components:

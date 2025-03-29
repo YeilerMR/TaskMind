@@ -5,7 +5,7 @@ export const courseSchema = z.object({
         .string({
             required_error: "El nombre del curso es obligatorio.",
         })
-        .min(2, {
+        .min(5, {
             message: "El nombre del curso debe tener al menos 2 caracteres.",
         })
         .max(100, {
@@ -43,7 +43,7 @@ export const courseSchema = z.object({
         .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/, {
             message: "El código de color debe ser un hexadecimal válido (6 u 8 caracteres).",
         }),
-        STATUS: z
+    STATUS: z
         .number({
             required_error: "El estado es obligatorio.",
             invalid_type_error: "El estado debe ser un número.",

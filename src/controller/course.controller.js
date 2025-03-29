@@ -25,6 +25,7 @@ export const registerCourse = async (req, res) => {
         res.json({
             status: 200,
             course: course,
+            message: "Curso creado exitosamente",
         });
     } catch (error) {
         logger.error(`Error inesperado al crear el curso: ${error.message}`);
@@ -34,28 +35,29 @@ export const registerCourse = async (req, res) => {
 
 export const getAllCourses = async (req, res) => {
     try {
-        const { page = 1, pageSize = 10, orderByField = 'DSC_NAME', order = 'asc' } = req.query;
+        const {
+            page = 1,
+            pageSize = 10,
+            orderByField = 'DSC_NAME',
+            order = 'asc',
+            includeInactive = false // Nuevo parámetro opcional
+        } = req.query;
+
         const limit = parseInt(pageSize);
         const offset = (parseInt(page) - 1) * limit;
-        if (limit < 1 || offset < 1) {
-            return res.status(400).json({ message: "Parámetros de paginación inválidos." });
-        }
 
-        const field = (
-            orderByField === 'DSC_NAME' || orderByField === 'DSC_CODE' || orderByField === 'DSC_ATTENTION'
-        ) ? orderByField : 'DSC_NAME';
+        const field = ['DSC_NAME', 'DSC_CODE', 'DSC_ATTENTION'].includes(orderByField) ? orderByField : 'DSC_NAME';
 
         const sortOrder = order.toLowerCase() === 'asc' || order.toLowerCase() === 'desc' ? order : 'asc';
 
+        // filter by status 
+        const whereCondition = includeInactive === 'true' ? {} : { STATUS: 1 };
+
         const { count, rows } = await Course.findAndCountAll({
-            where: {
-                STATUS: 1,
-            },
+            where: whereCondition,
             limit,
             offset,
-            order: [
-                [field, sortOrder],
-            ],
+            order: [[field, sortOrder]],
             include: [{
                 model: Professor,
                 attributes: ['DSC_FIRST_NAME', 'DSC_LAST_NAME_ONE', 'DSC_LAST_NAME_TWO'],
@@ -65,9 +67,7 @@ export const getAllCourses = async (req, res) => {
         if (rows.length === 0) {
             const message = "No se encontraron cursos.";
             logger.warning(message);
-            return res.status(204).json({
-                message: message,
-            });
+            return res.status(204).json({ message });
         }
 
         res.json({
@@ -128,7 +128,7 @@ export const updateCourse = async (req, res) => {
             logger.error(`Error al actualizar el curso: ${error}`);
             return res.status(400).json({ message: error });
         }
-        
+
         return res.json({ message: "Curso actualizado correctamente", course });
     } catch (error) {
         logger.error(`Error inesperado al actualizar el curso: ${error.message}`);
