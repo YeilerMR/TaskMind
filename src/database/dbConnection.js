@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const connectionSettings = {
+/*const connectionSettings = {
   dialect: "mssql",
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT, 10),
@@ -18,6 +18,22 @@ const connectionSettings = {
     },
   },
   logging: false,
+};*/
+
+const connectionSettings = {
+dialect: "mssql",
+host: "localhost",
+port: parseInt(1433, 10),
+database: "taskmind_db",
+username: "elian",
+password: "1234",
+dialectOption: {
+  options: {
+    encrypt: "true",
+    trustServerCertificate: "true",
+  },
+},
+logging: false,
 };
 
 //Funcion para realizar la conexion a la base de datos
