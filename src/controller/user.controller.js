@@ -3,7 +3,7 @@ import User from '../model/user.model.js';
 import { validateRegisterUser, validateUpdateUser } from '../logic/validateField.logic.js';
 import { validateRegister } from '../logic/user/user.logic.js';
 import { encryptData, compareData } from "../Lib/encryptData.js";
-import { format } from 'date-fns-tz';
+// import { format } from 'date-fns-tz';
 
 
 export const registerUsers = async (req, res) => {
