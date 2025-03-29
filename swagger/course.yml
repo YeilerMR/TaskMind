@@ -22,16 +22,21 @@ paths:
                 - DSC_NAME
                 - ID_TEACHER
                 - DSC_CODE
+                - ID_USER
               properties:
                 DSC_NAME:
                   type: string
                   description: Nombre del curso
                   example: "Programación I"
-                  minLenght: 5
+                  minLength: 5
                   maxLength: 100
                 ID_TEACHER:
                   type: integer
                   description: ID del profesor asignado
+                  example: 1
+                ID_USER:
+                  type: integer
+                  description: ID del usuario que crea el curso
                   example: 1
                 DSC_CODE:
                   type: string
@@ -41,7 +46,7 @@ paths:
                 DSC_ATTENTION:
                   type: string
                   description: Horario de atención
-                  example: Lunes 1
+                  example: "Lunes 1pm-3pm"
                   maxLength: 255
                 DSC_COLOR:
                   type: string
@@ -59,6 +64,8 @@ paths:
                     type: integer
                   course:
                     $ref: "#/components/schemas/Course"
+                  message:
+                    type: string
         "400":
           description: Error en validación de datos
         "500":
@@ -66,8 +73,8 @@ paths:
 
   /api/courses/all_course:
     get:
-      summary: Obtiene todos los cursos (activos por defecto)
-      description: Retorna una lista paginada de cursos. Por defecto, solo incluye los cursos activos (STATUS = 1), pero se pueden incluir los inactivos mediante un parámetro opcional.
+      summary: Obtiene todos los cursos
+      description: Retorna una lista paginada de cursos.
       parameters:
         - in: query
           name: page
@@ -96,11 +103,11 @@ paths:
             enum: [asc, desc]
           description: Dirección del orden
         - in: query
-          name: includeInactive
+          name: userId
+          required: true
           schema:
-            type: boolean
-            default: false
-          description: Si es `true`, incluye los cursos inactivos en la respuesta
+            type: integer
+          description: ID del usuario
       responses:
         "200":
           description: Lista de cursos obtenida
@@ -123,13 +130,15 @@ paths:
                       $ref: "#/components/schemas/CourseWithProfessor"
         "204":
           description: No se encontraron cursos
+        "400":
+          description: ID de usuario requerido
         "500":
           description: Error interno del servidor
 
   /api/courses/search_course:
     get:
       summary: Busca cursos por término
-      description: Busca cursos activos que coincidan con el término de búsqueda
+      description: Busca cursos que coincidan con el término de búsqueda
       parameters:
         - in: query
           name: termSearch
@@ -159,6 +168,12 @@ paths:
             type: string
             default: "asc"
             enum: [asc, desc]
+        - in: query
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: ID del usuario
       responses:
         "200":
           description: Resultados de búsqueda
@@ -182,7 +197,7 @@ paths:
         "204":
           description: No se encontraron resultados
         "400":
-          description: Término de búsqueda requerido
+          description: Término de búsqueda requerido o ID de usuario requerido
         "500":
           description: Error interno del servidor
 
@@ -205,23 +220,36 @@ paths:
               properties:
                 DSC_NAME:
                   type: string
+                  description: Nombre del curso
                 ID_TEACHER:
                   type: integer
+                  description: ID del profesor asignado
+                ID_USER:
+                  type: integer
+                  description: ID del usuario
                 DSC_CODE:
                   type: string
+                  description: Código del curso
                 DSC_ATTENTION:
                   type: string
+                  description: Horario de atención
                 DSC_COLOR:
                   type: string
-                STATUS:
-                  type: integer
+                  description: Color del curso
       responses:
         "200":
           description: Curso actualizado
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Course"
+                type: object
+                properties:
+                  message:
+                    type: string
+                  course:
+                    $ref: "#/components/schemas/Course"
+        "400":
+          description: Error en validación de datos
         "404":
           description: Curso no encontrado
         "500":
@@ -229,7 +257,8 @@ paths:
 
   /api/courses/delete_course/{id}:
     delete:
-      summary: Elimina un curso (cambia status a 0)
+      summary: Elimina un curso permanentemente
+      description: Elimina un curso y sus notas asociadas, y elimina al profesor si no tiene más cursos
       parameters:
         - in: path
           name: id
@@ -240,6 +269,15 @@ paths:
       responses:
         "200":
           description: Curso eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          description: ID de curso inválido
         "404":
           description: Curso no encontrado
         "500":
@@ -255,6 +293,8 @@ components:
         DSC_NAME:
           type: string
         ID_TEACHER:
+          type: integer
+        ID_USER:
           type: integer
         DSC_CODE:
           type: string
@@ -279,6 +319,8 @@ components:
         DSC_COLOR:
           type: string
         STATUS:
+          type: integer
+        ID_USER:
           type: integer
         Professor:
           type: object
