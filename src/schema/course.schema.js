@@ -6,7 +6,7 @@ export const courseSchema = z.object({
             required_error: "El nombre del curso es obligatorio.",
         })
         .min(5, {
-            message: "El nombre del curso debe tener al menos 2 caracteres.",
+            message: "El nombre del curso debe tener al menos 5 caracteres.",
         })
         .max(100, {
             message: "El nombre del curso no puede tener más de 100 caracteres.",
