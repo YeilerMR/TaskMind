@@ -20,23 +20,25 @@ dotenv.config();
   logging: false,
 };*/
 
-const connectionSettings = {
-dialect: "mssql",
-host: "localhost",
-port: parseInt(1433, 10),
-database: "taskmind_db",
-username: "elian",
-password: "1234",
-dialectOption: {
-  options: {
-    encrypt: "true",
-    trustServerCertificate: "true",
-  },
-},
-logging: false,
-};
 
 //Funcion para realizar la conexion a la base de datos
-const dbConnection = new Sequelize(connectionSettings)
+const dbConnection = new Sequelize('taskmind_db', 'elian', '1234', {
+  host: "localhost",
+  dialect: "mssql",
+  dialectOptions: {
+    options: {
+      encrypt: false,
+      trustServerCertificate: true, // Necesario para entornos locales/dev
+    
+    },
+  },
+  port: 62947, // Verifica que sea el puerto correcto (netstat -ano | findstr 62947)
+
+  logging: console.log, // Habilita logs para diagnóstico
+  retry: { // Reintentos automáticos
+    max: 3, // Máximo de reintentos
+    match: [/ECONNRESET/, /SequelizeConnectionError/], // Reintenta en estos errores
+  },
+});
 
 export default dbConnection;

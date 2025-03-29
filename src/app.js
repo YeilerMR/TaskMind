@@ -32,7 +32,7 @@ const professorDoc = loadSwaggerDoc('./swagger/professor.yml');
 const courseDoc = loadSwaggerDoc('./swagger/course.yml');
 const userDoc = loadSwaggerDoc('./swagger/user.yml');
 const loginDoc = loadSwaggerDoc('./swagger/login.yml');
-
+const noteDoc = loadSwaggerDoc('./swagger/note.yml');
 
 // Configurar Swagger UI con múltiples especificaciones
 const options = {
@@ -86,6 +86,10 @@ app.get('/api-docs/user.json', (req, res) => {
 
 app.get('/api-docs/login.json', (req, res) => {
     res.json(loginDoc);
+});
+
+app.get('/api-docs/note.json', (req, res) => {
+    res.json(noteDoc);
 });
 
 // Ruta principal de Swagger UI

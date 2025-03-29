@@ -1,0 +1,481 @@
+openapi: 3.0.0
+info:
+  title: TaskMind API - Notes
+  version: 1.0.0
+  description: Endpoints para gestionar notas de estudiantes en TaskMind
+servers:
+  - url: http://localhost:4000
+    description: Local server
+
+paths:
+  /api/notes/all_notes:
+    get:
+      summary: Obtiene todas las notas activas.
+      description: Retorna una lista paginada de notas activas.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Número de página (por defecto 1).
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 10
+          description: Tamaño de la página (por defecto 10).
+        - in: query
+          name: orderByField
+          schema:
+            type: string
+            default: "DSC_TITLE"
+            enum:
+              - DSC_TITLE
+              - DSC_COMMENT
+              - DATE_NOTE
+          description: Campo por el cual se ordenará la lista (por defecto DSC_TITLE).
+        - in: query
+          name: order
+          schema:
+            type: string
+            default: "asc"
+            enum:
+              - asc
+              - desc
+          description: Orden de la lista (ascendente o descendente, por defecto asc).
+      responses:
+        '200':
+          description: Lista de notas obtenida exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: Total de notas activas.
+                  totalPages:
+                    type: integer
+                    description: Número total de páginas.
+                  currentPage:
+                    type: integer
+                    description: Página actual.
+                  pageSize:
+                    type: integer
+                    description: Tamaño de la página.
+                  notes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ID_STUDENT_NOTE:
+                          type: integer
+                          description: ID de la nota.
+                        ID_USER:
+                          type: integer
+                          description: ID del usuario.
+                        ID_COURSE:
+                          type: integer
+                          description: ID del curso.
+                        DSC_TITLE:
+                          type: string
+                          description: Título de la nota.
+                        DSC_COMMENT:
+                          type: string
+                          description: Comentario de la nota.
+                        DATE_NOTE:
+                          type: string
+                          format: date-time
+                          description: Fecha de la nota.
+                        User:
+                          type: object
+                          properties:
+                            DSC_FIRST_NAME:
+                              type: string
+                            DSC_LAST_NAME_ONE:
+                              type: string
+                            DSC_EMAIL:
+                              type: string
+                            DSC_CAREER:
+                              type: string
+                        Course:
+                          type: object
+                          properties:
+                            DSC_NAME:
+                              type: string
+                            ID_TEACHER:
+                              type: integer
+                            DSC_CODE:
+                              type: string
+        '204':
+          description: No hay notas registradas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje indicando que no hay notas registradas.
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error.
+
+  /api/notes/register:
+    post:
+      summary: Registra una nueva nota.
+      description: Crea una nueva nota en la base de datos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ID_USER:
+                  type: integer
+                  description: ID del usuario.
+                ID_COURSE:
+                  type: integer
+                  description: ID del curso.
+                DSC_TITLE:
+                  type: string
+                  description: Título de la nota.
+                DSC_COMMENT:
+                  type: string
+                  description: Comentario de la nota.
+                DATE_NOTE:
+                  type: string
+                  format: date-time
+                  description: Fecha de la nota.
+      responses:
+        '200':
+          description: Nota registrada correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: Código de estado HTTP.
+                  message:
+                    type: string
+                    description: Mensaje de éxito.
+                  note:
+                    type: object
+                    properties:
+                      ID_STUDENT_NOTE:
+                        type: integer
+                        description: ID de la nota.
+                      ID_USER:
+                        type: integer
+                        description: ID del usuario.
+                      ID_COURSE:
+                        type: integer
+                        description: ID del curso.
+                      DSC_TITLE:
+                        type: string
+                        description: Título de la nota.
+                      DSC_COMMENT:
+                        type: string
+                        description: Comentario de la nota.
+                      DATE_NOTE:
+                        type: string
+                        format: date-time
+                        description: Fecha de la nota.
+        '400':
+          description: Campos incompletos o inválidos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error indicando los campos obligatorios faltantes o inválidos.
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error.
+
+  /api/notes/delete_note/{id}:
+    delete:
+      summary: Elimina una nota (cambia su estado a inactivo).
+      description: Cambia el estado de una nota a inactivo (STATUS = 0).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID de la nota a eliminar.
+      responses:
+        '200':
+          description: Nota eliminada correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de éxito.
+        '404':
+          description: Nota no encontrada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje indicando que la nota no fue encontrada.
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error.
+
+  /api/notes/update_note/{id}:
+    put:
+      summary: Actualiza una nota existente.
+      description: Actualiza los datos de una nota existente en la base de datos.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID de la nota a actualizar.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ID_USER:
+                  type: integer
+                  description: ID del usuario.
+                ID_COURSE:
+                  type: integer
+                  description: ID del curso.
+                DSC_TITLE:
+                  type: string
+                  description: Título de la nota.
+                DSC_COMMENT:
+                  type: string
+                  description: Comentario de la nota.
+                DATE_NOTE:
+                  type: string
+                  format: date-time
+                  description: Fecha de la nota.
+      responses:
+        '200':
+          description: Nota actualizada correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de éxito.
+                  note:
+                    type: object
+                    properties:
+                      ID_STUDENT_NOTE:
+                        type: integer
+                        description: ID de la nota.
+                      ID_USER:
+                        type: integer
+                        description: ID del usuario.
+                      ID_COURSE:
+                        type: integer
+                        description: ID del curso.
+                      DSC_TITLE:
+                        type: string
+                        description: Título de la nota.
+                      DSC_COMMENT:
+                        type: string
+                        description: Comentario de la nota.
+                      DATE_NOTE:
+                        type: string
+                        format: date-time
+                        description: Fecha de la nota.
+        '404':
+          description: Nota no encontrada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje indicando que la nota no fue encontrada.
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error.
+
+  /api/notes/search_note:
+    get:
+      summary: Busca notas por término.
+      description: Busca notas que coincidan con un término de búsqueda.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Número de página (por defecto 1).
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 5
+          description: Tamaño de la página (por defecto 5).
+        - in: query
+          name: termSearch
+          schema:
+            type: string
+          description: Término de búsqueda (obligatorio).
+        - in: query
+          name: orderByField
+          schema:
+            type: string
+            default: "DSC_TITLE"
+            enum:
+              - DSC_TITLE
+              - DSC_COMMENT
+              - DATE_NOTE
+          description: Campo por el cual se ordenará la lista (por defecto DSC_TITLE).
+        - in: query
+          name: order
+          schema:
+            type: string
+            default: "asc"
+            enum:
+              - asc
+              - desc
+          description: Orden de la lista (ascendente o descendente, por defecto asc).
+      responses:
+        '200':
+          description: Notas encontradas exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: Total de notas encontradas.
+                  totalPages:
+                    type: integer
+                    description: Número total de páginas.
+                  currentPage:
+                    type: integer
+                    description: Página actual.
+                  pageSize:
+                    type: integer
+                    description: Tamaño de la página.
+                  notes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ID_STUDENT_NOTE:
+                          type: integer
+                          description: ID de la nota.
+                        ID_USER:
+                          type: integer
+                          description: ID del usuario.
+                        ID_COURSE:
+                          type: integer
+                          description: ID del curso.
+                        DSC_TITLE:
+                          type: string
+                          description: Título de la nota.
+                        DSC_COMMENT:
+                          type: string
+                          description: Comentario de la nota.
+                        DATE_NOTE:
+                          type: string
+                          format: date-time
+                          description: Fecha de la nota.
+                        User:
+                          type: object
+                          properties:
+                            DSC_FIRST_NAME:
+                              type: string
+                            DSC_LAST_NAME_ONE:
+                              type: string
+                            DSC_EMAIL:
+                              type: string
+                            DSC_CAREER:
+                              type: string
+                        Course:
+                          type: object
+                          properties:
+                            DSC_NAME:
+                              type: string
+                            ID_TEACHER:
+                              type: integer
+                            DSC_CODE:
+                              type: string
+        '204':
+          description: No se encontraron notas con los criterios de búsqueda.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje indicando que no se encontraron notas.
+        '400':
+          description: El término de búsqueda es obligatorio.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje indicando que el término de búsqueda es obligatorio.
+        '500':
+          description: Error interno del servidor.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de error.

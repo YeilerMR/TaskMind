@@ -1,6 +1,6 @@
 import { noteSchema } from "../schema/notes.schema.js";
 import Notes from "../model/notes.model.js";
-import User from "../model/User.model.js";
+import User from "../model/user.model.js";
 import Course from "../model/course.model.js";
 
 // Función para verificar si el profesor es válido
