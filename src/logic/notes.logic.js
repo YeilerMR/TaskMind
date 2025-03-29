@@ -3,18 +3,19 @@ import Notes from "../model/note.model.js";
 import User from "../model/user.model.js";
 import Course from "../model/course.model.js";
 
-// Función para verificar si el profesor es válido
+// Function to check if the professor is valid
 export const isValidUser = async (ID_USER) => {
     const user = await User.findOne({ where: { ID_USER: ID_USER } });
     return user;
 };
 
+// Function to check if the course is valid
 export const isValidCourse = async (ID_COURSE) => {
     const course = await Course.findOne({ where: { ID_COURSE: ID_COURSE} });
     return course;
 };
 
-// Función para validar el tipo de datos
+// Function to validate data types
 export const validateNote = (noteData) => {
     const validatedData = {
         ID_USER: noteData.ID_USER !== undefined ? Number(noteData.ID_USER) : null,
@@ -24,7 +25,7 @@ export const validateNote = (noteData) => {
         DATE_NOTE: noteData.DATE_NOTE !== undefined ? String(noteData.DATE_NOTE).trim() : null,
     };
 
-    // Validaciones básicas
+    // basics validations
     const errors = [];
     
     if (!validatedData.ID_USER) errors.push("El ID del usuario es obligatorio");
@@ -48,35 +49,14 @@ export const validateNote = (noteData) => {
     return { validatedData: result.data };
 };
 
-// Función para crear un nuevo curso
+// Function to create a new note
 export const createNoteLogic = async ({ ID_USER, ID_COURSE, DSC_TITLE, DSC_COMMENT, DATE_NOTE }) => {
-    console.log("hola");
-       /*
-    const validationError = validateNote({
-        ID_USER,
-        ID_COURSE,
-        DSC_TITLE,
-        DSC_COMMENT,
-        DATE_NOTE,
-    });
-
- 
-    if (validationError) {
-        return { error: validationError };
-    }
-    console.log("hola");
-    */
+   
     const isUserValid = await isValidUser(ID_USER);
     if (!isUserValid) {
         return { error: "El usuario no existe o el ID es inválido." };
     }
 
-    /*const isCourseValid = await isValidCourse(ID_COURSE);
-    console.log(isCourseValid);
-    if (!isCourseValid) {
-        return { error: "El curso no existe o el ID es inválido." };
-    }*/
-    
     console.log("hola");
     const noteSaved = await Notes.create({
         ID_USER,
@@ -89,7 +69,7 @@ export const createNoteLogic = async ({ ID_USER, ID_COURSE, DSC_TITLE, DSC_COMME
     return { Notes: noteSaved };
 };
 
-// Función para actualizar un curso
+// Function to update an existing note
 export const updateNoteLogic = async (notesId, { ID_USER, ID_COURSE, DSC_TITLE, DSC_COMMENT, DATE_NOTE }) => {
     console.log(ID_USER, ID_COURSE, DSC_TITLE, DSC_COMMENT, DATE_NOTE);
     const validationError = validateNote({

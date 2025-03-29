@@ -1,7 +1,6 @@
 import Professor from "../model/professorModel.js";
-import Console from "../Lib/Console.js";
-import Course from "../model/course.model.js";
 import { Op } from "sequelize";
+import Console from "../Lib/Console.js";
 
 const logger = new Console("P_CONTROLLER");
 
@@ -13,9 +12,11 @@ function isNotEmpty(value) {
   }
   return false;
 }
-export const getAllProfessors = async (req, res) => {
+
+// function to get all professors
+export const getProfessors = async (req) => {
   try {
-    //Parametros para paginacion (No necesario)
+    // Pagination params
     const {
       page = 1,
       pageSize = 5,
@@ -24,8 +25,7 @@ export const getAllProfessors = async (req, res) => {
     } = req.query;
     const limit = parseInt(pageSize);
     const offset = (parseInt(page) - 1) * limit;
-
-    //Validar los campos de ordenamiento
+    
     const field = [
       "DSC_FIRST_NAME",
       "DSC_LAST_NAME_ONE",
@@ -33,50 +33,51 @@ export const getAllProfessors = async (req, res) => {
       "STATUS",
     ].includes(orderByField)
       ? orderByField
-      : "DSC_FIRST_NAME"; //Campo de ordenamiento por default.
+      : "DSC_FIRST_NAME";
 
-    //Validar el orden
+    // validation for order
     const sortOrder = ["asc", "desc"].includes(order.toLowerCase())
       ? order.toLowerCase()
       : "asc";
-
-    //Consulta a la base de datos
+    
     const { count, rows } = await Professor.findAndCountAll({
       where: {
-        STATUS: 1, // Solo profesores activos
+        STATUS: 1, 
       },
       limit,
       offset,
       order: [
-        [field, sortOrder], // ordena segun el campo y el orden especificados
+        [field, sortOrder],
       ],
-      distinct: true, // Asegura que el conteo sea preciso cuando haya relacion
+      distinct: true,
     });
 
-    //Si no encuentra profesores, retorna el mensaje
     if (rows.length === 0) {
       const message = "No hay profesores registrados.";
       logger.warning(message);
-      return res.status(204).json({
-        message: message,
-      });
+      return { message: message, status: 204 };
     }
-
-    //Retorna la lista con los profesores registrados
-    res.json({
-      total: count,
-      totalPage: Math.ceil(count / limit),
-      currentPage: parseInt(page),
-      pageSize: limit,
-      professors: rows,
-    });
+    
+    return {
+      success: true,
+      data: {
+        total: count,
+        totalPage: Math.ceil(count / limit),
+        currentPage: parseInt(page),
+        pageSize: limit,
+        professors: rows,
+      },
+      status: 200,
+    };
   } catch (error) {
     logger.error(error);
-    return res.status(500).json({ message: error.message });
+    return { status: 500, error: error };
   }
 };
 
-export const registerProfessor = async (req, res) => {
+// add new professor
+export const addProfessor = async (req) => {
+  var message = "Todos los campos son necesarios";
   try {
     const {
       DSC_FIRST_NAME,
@@ -86,6 +87,9 @@ export const registerProfessor = async (req, res) => {
       DSC_PHONE,
       STATUS,
     } = req.body;
+    logger.info("Datos recividos de la peticion: ", req.DSC_FIRST_NAME);
+
+    // validations for empty fields
     if (
       !isNotEmpty(DSC_FIRST_NAME) ||
       !isNotEmpty(DSC_LAST_NAME_ONE) ||
@@ -94,12 +98,10 @@ export const registerProfessor = async (req, res) => {
       !isNotEmpty(STATUS)
     ) {
       logger.error("Campos incompletos");
-      return res
-        .status(400)
-        .json({ message: "Todos los campos son obligatorios." });
+      return { status: 400, message: message };
     }
 
-    const professorSave = await Professor.create({
+    const saveProfessor = await Professor.create({
       DSC_FIRST_NAME,
       DSC_LAST_NAME_ONE,
       DSC_LAST_NAME_TWO,
@@ -108,38 +110,31 @@ export const registerProfessor = async (req, res) => {
       STATUS,
     });
 
-    res.json({
-      status: 200,
-      message: "Profesor registrado correctamente",
-      professor: professorSave,
-    });
+    message = "Profesor registrado correctamente";
+    logger.success(message);
+    return {
+      status: 201,
+      message: message,
+      data: saveProfessor,
+    };
   } catch (error) {
+    message = "Error: " + error.message;
     logger.error(error);
-    return res.status(500).json({ message: error.message });
+    return { status: 500, error: message };
   }
 };
 
-// export const getAllProfessors = async (req, res) => {
-//   try {
-//     // Lógica para obtener todos los profesores
-//     const professors = await Professor.findAll();
-//     res.json(professors);
-//     logger.success("Todos los profesores obtenidos.");
-//   } catch (error) {
-//     logger.error(error);
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-export const deleteProfessor = async (req, res) => {
+// delete an existing professor
+export const eliminateProfessor = async (req) => {
   try {
+    let message = "Profesor no encontrado";
     const professor = await Professor.findOne({
       where: { ID_TEACHER: req.params.id },
     });
 
     if (!professor) {
       logger.error("No se encontro el profesor");
-      return res.status(404).json({ message: "Profesor no encontrado" });
+      return { status: 404, message: message };
     }
     const professorName = professor.DSC_FIRST_NAME;
     logger.info("Info del profesor: " + professorName);
@@ -148,16 +143,16 @@ export const deleteProfessor = async (req, res) => {
       STATUS: 0,
     });
     logger.success("Profesor[" + professorName + "] eliminado correctamente");
-    return res
-      .status(200)
-      .json({ message: "Profesor eliminado correctamente" });
+    message = "Profesor [" + professorName + "] eliminado correctamente";
+    return { status: 200, message: message };
   } catch (error) {
     logger.error(error);
-    return res.status(500).json({ message: error.message });
+    return { status: 500, message: error.message };
   }
 };
 
-export const updateProfessor = async (req, res) => {
+// update and existing professor
+export const modifyProfessor = async (req) => {
   try {
     const {
       DSC_FIRST_NAME,
@@ -167,12 +162,12 @@ export const updateProfessor = async (req, res) => {
       DSC_PHONE,
       STATUS,
     } = req.body;
-    logger.info("info del profesor: " + req.body);
+    logger.info("Informacion del profesor: ", req.body);
 
     const professor = await Professor.findByPk(req.params.id);
     if (!professor) {
       logger.error("No se encontro el profesor");
-      return res.status(404).json({ message: "Profesor no encontrado" });
+      return { status: 404, message: "Profesor no encontrado" };
     }
 
     const updateData = {
@@ -183,20 +178,17 @@ export const updateProfessor = async (req, res) => {
       DSC_PHONE,
       STATUS,
     };
-
     await professor.update(updateData);
     logger.success("Profesor actualizado correctamente");
-    return res.status(200).json({
-      message: "Profesor actualizado correctamente",
-      professor: professor,
-    });
+    return { status: 200, message: "Profesor actualizado correctamente" };
   } catch (error) {
     logger.error(error.message);
-    res.status(500).json({ message: error.message });
+    return { status: 500, message: error.message };
   }
 };
 
-export const searchProfessor = async (req, res) => {
+// search proffessor by term
+export const findProfessor = async (req) => {
   try {
     const {
       page = 1,
@@ -232,6 +224,7 @@ export const searchProfessor = async (req, res) => {
       order.toLowerCase() === "asc" || order.toLowerCase() === "desc"
         ? order
         : "asc";
+
     const expectedMatch = { [Op.like]: `%${termSearch}%` };
 
     const { count, rows } = await Professor.findAndCountAll({
@@ -240,7 +233,7 @@ export const searchProfessor = async (req, res) => {
       order: [[field, sortOrder]],
       where: {
         [Op.and]: [
-          { STATUS: 1 }, //Solo profesores con STATUS = 1
+          { STATUS: 1 },
           {
             [Op.or]: [
               { DSC_FIRST_NAME: expectedMatch },
@@ -258,23 +251,34 @@ export const searchProfessor = async (req, res) => {
       const message =
         "No se encontraron profesores con los criterios de búsqueda.";
       logger.warning(message);
-      return res.status(204).json({
-        message: message,
-        total: 0,
-        currentPage: parseInt(page),
-        pageSize: limit,
-        professors: [],
-      });
+      return {
+        success: false,
+        data: {
+          message: message,
+          total: 0,
+          currentPage: parseInt(page),
+          pageSize: limit,
+          professors: [],
+        },
+        status: 204
+      };
     }
-    res.json({
-      total: count,
-      totalPage: Math.ceil(count / limit),
-      currentPage: parseInt(page),
-      pageSize: limit,
-      professors: rows,
-    });
+
+    return {
+        success: true,
+        data: {
+            total: count,
+            totalPage: Math.ceil(count / limit),
+            currentPage: parseInt(page),
+            pageSize: limit,
+            professors: rows,
+        },
+        status: 200
+      };
+
+
   } catch (error) {
     logger.error("Error al buscar profesor: " + error);
-    return res.status(500).json({ message: error.message });
+    return {success: false, error: error.message};
   }
 };

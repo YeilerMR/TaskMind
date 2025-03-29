@@ -10,11 +10,7 @@ export const validateRegister = async (DSC_EMAIL) => {
     }
 };
 
-
-
-// metodos para validación
-
-
+// validations methods
 async function existData(email) {
     if (await existEmail(email))
         return ["El correo ya se encuentra en uso."];
