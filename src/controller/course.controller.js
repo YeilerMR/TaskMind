@@ -1,7 +1,7 @@
 import { createCourseLogic, updateCourseLogic, deleteCourseLogic } from "../logic/course.logic.js";
 import Course from "../model/course.model.js";
 import Professor from "../model/professorModel.js";
-import Notes from "../model/notes.model.js";
+import Notes from "../model/note.model.js";
 import { Op } from 'sequelize';
 import Console from "../Lib/Console.js";
 const logger = new Console("P_CONTROLLER");

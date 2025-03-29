@@ -1,7 +1,7 @@
 import { courseSchema } from "../schema/course.schema.js";
 import Professor from "../model/professorModel.js";
 import Course from "../model/course.model.js";
-import Notes from "../model/notes.model.js";
+import Notes from "../model/note.model.js";
 import User from "../model/user.model.js";
 
 // Function to check if the professor is valid
