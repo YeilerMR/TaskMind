@@ -36,15 +36,6 @@ export const noteSchema = z.object({
         .max(255, {
             message: "La nota no puede tener más de 1000 caracteres.",
         })
-        .optional(),
-        DATE_NOTE: z
-        .string({
-            required_error: "La fecha de la nota es obligatoria.",
-          })
-          .regex(/^\d{4}-\d{2}-\d{2}$/, {
-            message: "La fecha debe estar en formato YYYY-MM-DD.",
-          }),
-        
 });
 
 export default noteSchema;
