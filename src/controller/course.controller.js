@@ -30,15 +30,13 @@ export const searchCourse = async (req, res) => {
         const expectedMatch = { [Op.like]: `%${termSearch}%` };
 
         const { count, rows } = await Course.findAndCountAll({
-            where: {
-                ID_USER: userId,
-            },
             limit,
             offset,
             order: [
                 [field, sortOrder],
             ],
             where: {
+                ID_USER: userId,
                 [Op.or]: [
                     { DSC_NAME: expectedMatch },
                     { DSC_CODE: expectedMatch },
