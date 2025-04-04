@@ -28,6 +28,11 @@ paths:
                   example: "Pérez"
                   minLength: 3
                   maxLength: 50
+                DSC_IDENTIFICATION:
+                  type: string
+                  example: "123456789"
+                  minLength: 9
+                  maxLength: 100
                 DSC_EMAIL:
                   type: string
                   example: "juan.perez@example.com"
@@ -51,6 +56,7 @@ paths:
               required:
                 - DSC_FIRST_NAME
                 - DSC_LAST_NAME_ONE
+                - DSC_IDENTIFICATION
                 - DSC_EMAIL
                 - DSC_PASSWORD
                 - CONFIRM_PASSWORD
@@ -94,6 +100,7 @@ paths:
                   message:
                     type: string
                     example: "Error interno del servidor"
+
 
   /api/users/updateUser/{id}:
     put:

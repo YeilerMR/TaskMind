@@ -21,6 +21,14 @@ export const userSchema = z.object({
     .max(50, {
       message: "El primer apellido no puede exceder los 50 caracteres.",
     }),
+  DSC_IDENTIFICATION: z
+    .string()
+    .min(9, { 
+      message: "El numero de cedula debe contener 9 digitos."
+     })
+    .max(100, {
+      message: "El primer apellido no puede exceder los 100 caracteres.",
+    }),
   DSC_EMAIL: z
     .string({
       required_error: "El correo electrónico es obligatorio.",
@@ -66,7 +74,7 @@ export const loginSchema = z.object({
     .string({
       required_error: "La contraseña es obligatoria.",
     })
-    ,
+  ,
 });
 
 export const updateUserSchema = z.object({
@@ -88,7 +96,7 @@ export const updateUserSchema = z.object({
       message: "El primer apellido no puede exceder los 50 caracteres.",
     })
     .optional(),
-    DSC_PASSWORD: z
+  DSC_PASSWORD: z
     .string({
       required_error: "La contraseña es obligatoria.",
     })

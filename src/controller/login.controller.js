@@ -28,8 +28,9 @@ export const login = async (req, res) => {
       }
 
       const token = await createAccessToken({
-        id: userFound.ID_USER,
-        username: userFound.DSC_FIRST_NAME
+        id: userFound.DSC_IDENTIFICATION,
+        username: userFound.DSC_FIRST_NAME,
+        email: userFound.DSC_EMAIL
       }
       );
   
@@ -40,7 +41,7 @@ export const login = async (req, res) => {
       });
   
       res.status(200).json({
-        ID_USER: userFound.ID_USER,
+        ID_USER: userFound.DSC_IDENTIFICATION,
         DSC_FIRST_NAME: userFound.DSC_FIRST_NAME,
         DSC_LAST_NAME_ONE:userFound.DSC_LAST_NAME_ONE,
         DSC_EMAIL: userFound.DSC_EMAIL,
@@ -62,7 +63,7 @@ export const login = async (req, res) => {
     jwt.verify(token, TOKEN_SECRET, async (error, user) => {
         if (error) return res.sendStatus(401);
 
-        const userFound = await User.findOne({ where: { ID_USER: user.id } });
+        const userFound = await User.findOne({ where: { DSC_IDENTIFICATION: user.id } });
         if (!userFound) return res.sendStatus(401); 
 
         res.cookie("token", "", {

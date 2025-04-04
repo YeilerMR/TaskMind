@@ -8,7 +8,7 @@ import { encryptData, compareData } from "../Lib/encryptData.js";
 
 export const registerUsers = async (req, res) => {
   try {
-    const { DSC_FIRST_NAME, DSC_LAST_NAME_ONE, DSC_EMAIL, DSC_PASSWORD, DSC_CAREER, CONFIRM_PASSWORD } = req.body;
+    const { DSC_FIRST_NAME, DSC_LAST_NAME_ONE,DSC_IDENTIFICATION, DSC_EMAIL, DSC_PASSWORD, DSC_CAREER, CONFIRM_PASSWORD } = req.body;
 
     const validateFields = validateRegisterUser(req);
     if (validateFields !== true) {
@@ -16,6 +16,12 @@ export const registerUsers = async (req, res) => {
         message: validateFields,
       })
     }
+
+    const user = await User.findOne({ where: { DSC_IDENTIFICATION: DSC_IDENTIFICATION } });
+    if (user) {
+      return res.status(404).json({ message: "La cedula se encuentra registrada en el sistema." });
+    }
+
 
     const output = await validateRegister(DSC_EMAIL);
     if (output !== true) {
@@ -37,6 +43,7 @@ export const registerUsers = async (req, res) => {
     const newUser = new User({
       DSC_FIRST_NAME,
       DSC_LAST_NAME_ONE,
+      DSC_IDENTIFICATION,
       DSC_EMAIL: DSC_EMAIL.toLowerCase(),
       DSC_PASSWORD: passwordHash,
       DATE_CREATED,
@@ -46,7 +53,7 @@ export const registerUsers = async (req, res) => {
     const userSaved = await newUser.save();
 
     res.status(200).json({
-      ID_USER: userSaved.ID_USER,
+      ID_USER: userSaved.DSC_IDENTIFICATION,
       DSC_FIRST_NAME: userSaved.DSC_FIRST_NAME,
       DSC_LAST_NAME_ONE: userSaved.DSC_LAST_NAME_ONE,
       DSC_EMAIL: userSaved.DSC_EMAIL,
@@ -64,7 +71,7 @@ export const registerUsers = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const {
-      DSC_FIRST_NAME, DSC_LAST_NAME_ONE, DSC_PASSWORD, CONFIRM_PASSWORD, DSC_CAREER } = req.body;
+      DSC_FIRST_NAME, DSC_LAST_NAME_ONE ,DSC_PASSWORD, CONFIRM_PASSWORD, DSC_CAREER } = req.body;
 
     const validateFields = validateUpdateUser(req);
     if (validateFields !== true) {
@@ -73,7 +80,7 @@ export const updateUser = async (req, res) => {
       })
     }
 
-    const user = await User.findOne({ where: { ID_USER: req.params.id } });
+    const user = await User.findOne({ where: { DSC_IDENTIFICATION: req.params.id } });
     if (!user) {
       return res.status(404).json({ message: "Error al cargar el usuario." });
     }
@@ -105,15 +112,9 @@ export const updateUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
 
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ message: "ID inválido." });
-    }
-    if (id <= 0) {
-      return res.status(400).json({ message: "ID inválido." });
-    }
-
-    const user = await User.findOne({ where: { ID_USER: id } });
+    const id = req.params.id;
+   
+    const user = await User.findOne({ where: { DSC_IDENTIFICATION: id } });
     if (!user) {
       return res.status(404).json({ message: "Error al cargar el usuario." });
     }
