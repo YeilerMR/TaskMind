@@ -24,6 +24,30 @@ export const userServices = {
 
       return 0;
     }
+  },
+  async delectUser(user){
+   try{
+    user.STATUS = 0;
+    const userStatus=await user.save();
+    return userStatus;
+   }catch(error){
+    console.error('Error en deleteUser:', error);
+    return null;
+   }
+  },
+  async updateUser(data){
+    try{
+    const user =  await user.update({
+      DSC_FIRST_NAME: data.DSC_FIRST_NAME,
+      DSC_LAST_NAME_ONE: data.DSC_LAST_NAME_ONE,
+      DSC_PASSWORD: data.DSC_PASSWORD, 
+      DSC_CAREER: data.DSC_CAREER || "N/E",
+    });
+    return user;
+  }catch(error){
+    console.error('Error en updateUser:', error);
+    return null;
+  }
   }
 };
 
