@@ -69,3 +69,12 @@ paths:
                 properties:
                   message:
                     type: string
+  /api/Auth/logoutAccess:
+    post:
+      summary: Cerrar sesión
+      description: Elimina el token de sesión del usuario.
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Cierre de sesión exitoso

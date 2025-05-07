@@ -16,6 +16,10 @@ const User = dbConnection.define("user", {
         type: DataTypes.STRING(50),
         allowNull: false,
     },
+    DSC_IDENTIFICATION:{
+        type: DataTypes.STRING(100),
+        allowNull: false,
+    },
     DSC_EMAIL: {
         type: DataTypes.STRING(100),
         allowNull: false,
