@@ -5,6 +5,7 @@ import User from "../model/user.model.js";
 import { Op } from 'sequelize';
 import Console from "../Lib/Console.js";
 import {getDateCR} from "../Lib/date.js";
+
 const logger = new Console("P_CONTROLLER");
 
 function isNotEmpty(value) {
@@ -232,6 +233,59 @@ export const searchNotes = async (req, res) => {
         });
     } catch (error) {
         logger.error("Error al buscar la nota con los criterios de búsqueda." + error);
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export const getNotesByUserID = async (req, res) => {
+    try {
+        const {
+            page = 1,
+            pageSize = 10,
+            orderByField = 'ID_COURSE',
+            order = 'asc',
+            userId,
+        } = req.query;
+
+        const limit = parseInt(pageSize);
+        const offset = (parseInt(page) - 1) * limit;
+
+        if (!userId) {
+            return res.status(400).json({ message: "Se requiere el ID_USER." });
+        }
+
+        const field = ['ID_COURSE', 'DSC_TITLE', 'DSC_COMMENT'].includes(orderByField) ? orderByField : 'ID_COURSE';
+
+        const sortOrder = order.toLowerCase() === 'asc' || order.toLowerCase() === 'desc' ? order : 'asc';
+
+        const { count, rows } = await Notes.findAndCountAll({
+            where: {
+                ID_USER: userId,
+            },
+            limit,
+            offset,
+            order: [[field, sortOrder]],
+            include: [{
+                model: Course,
+                attributes: ['DSC_NAME', 'DSC_CODE', 'DSC_ATTENTION'],
+            }],
+        });
+
+        if (rows.length === 0) {
+            const message = "No se encontraron notas.";
+            logger.warning(message);
+            return res.status(204).json({ message });
+        }
+
+        res.json({
+            total: count,
+            totalPages: Math.ceil(count / limit),
+            currentPage: parseInt(page),
+            pageSize: limit,
+            courses: rows,
+        });
+    } catch (error) {
+        logger.error(error);
         return res.status(500).json({ message: error.message });
     }
 };

@@ -109,3 +109,4 @@ export const updateNoteLogic = async (notesId, { ID_USER, ID_COURSE, DSC_TITLE, 
 
     return { note };
 };
+
