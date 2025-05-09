@@ -44,7 +44,7 @@ export const createCourseLogic = async (data) => {
 
     data.ID_USER = user.ID_USER;
 
-    const isUserValid = await isValidUser(ID_USER);
+    const isUserValid = await isValidUser(data.ID_USER);
     if (!isUserValid) {
         return { error: "El usuario no existe o el ID es inválido." };
     }
