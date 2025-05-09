@@ -3,50 +3,19 @@ import Professor from "../model/professorModel.js";
 import Course from "../model/course.model.js";
 import Notes from "../model/note.model.js";
 import User from "../model/user.model.js";
+import { Op } from "sequelize";
 
-// Function to check if the professor is valid
-export const isValidProfessor = async (ID_TEACHER) => {
-    const professor = await Professor.findOne({ where: { ID_TEACHER } });
-    return !!professor;
-};
-
-// Function to check if the user is valid
-export const isValidUser = async (ID_USER) => {
-    const user = await User.findOne({ where: { ID_USER } });
-    return !!user;
-};
-
-// Function to validate data types
-export const validateCourse = (courseData) => {
-    const validatedData = {
-        DSC_NAME: courseData.DSC_NAME !== undefined ? String(courseData.DSC_NAME).trim() : null,
-        ID_TEACHER: courseData.ID_TEACHER !== undefined ? Number(courseData.ID_TEACHER) : null,
-        ID_USER: courseData.ID_USER !== undefined ? Number(courseData.ID_TEACHER) : null,
-        DSC_CODE: courseData.DSC_CODE !== undefined ? String(courseData.DSC_CODE).trim() : null,
-        DSC_ATTENTION: courseData.DSC_ATTENTION !== undefined ? String(courseData.DSC_ATTENTION).trim() : null,
-        DSC_COLOR: courseData.DSC_COLOR !== undefined ? String(courseData.DSC_COLOR).trim() : null,
+// Validations
+const validateCourse = (courseData) => {
+    const data = {
+        DSC_NAME: String(courseData.DSC_NAME ?? "").trim(),
+        ID_TEACHER: Number(courseData.ID_TEACHER),
+        ID_USER: Number(courseData.ID_USER),
+        DSC_CODE: String(courseData.DSC_CODE ?? "").trim(),
+        DSC_ATTENTION: String(courseData.DSC_ATTENTION ?? "").trim(),
+        DSC_COLOR: String(courseData.DSC_COLOR ?? "").trim(),
     };
-
-    if (validatedData.DSC_NAME === null || validatedData.DSC_NAME === "") {
-        return "El nombre del curso es obligatorio.";
-    }
-    if (validatedData.DSC_CODE === null || validatedData.DSC_CODE === "") {
-        return "El código del curso es obligatorio.";
-    }
-    if (validatedData.ID_TEACHER === null) {
-        return "El ID del profesor es obligatorio.";
-    }
-    if (validatedData.ID_USER === null) {
-        return "El ID del usuario es obligatorio.";
-    }
-    if (validatedData.DSC_ATTENTION === null) {
-        return "El campo de horario atención debe estar presente";
-    }
-    if (isNaN(validatedData.ID_TEACHER)) {
-        return "El ID del profesor debe ser un valor numérico.";
-    }
-
-    const result = courseSchema.safeParse(validatedData);
+    const result = courseSchema.safeParse(data);
     if (!result.success) {
         return result.error.errors.map(e => e.message).join(", ");
     }
@@ -54,76 +23,136 @@ export const validateCourse = (courseData) => {
     return null;
 };
 
-// Function to create a new course
-export const createCourseLogic = async ({ DSC_NAME, ID_TEACHER, ID_USER, DSC_CODE, DSC_ATTENTION, DSC_COLOR }) => {
+const isValidProfessor = async (ID_TEACHER) => !!await Professor.findByPk(ID_TEACHER);
+const isValidUser = async (ID_USER) => !!await User.findByPk(ID_USER);
 
-    const validationError = validateCourse({
-        DSC_NAME,
-        ID_TEACHER,
-        ID_USER,
-        DSC_CODE,
-        DSC_ATTENTION,
-        DSC_COLOR,
+// Create Course Logic
+export const createCourseLogic = async (data) => {
+    const error = validateCourse(data);
+    if (error) return { error };
+
+    const user = await User.findOne({
+        where: { DSC_IDENTIFICATION: data.ID_USER },
+        attributes: ['ID_USER'],
     });
 
-    if (validationError) {
-        return { error: validationError };
-    }
+    if (!user) return { error: "Usuario no encontrado con esa cédula." };
 
-    const isProfessorValid = await isValidProfessor(ID_TEACHER);
-    if (!isProfessorValid) {
-        return { error: "El profesor no existe o el ID es inválido." };
-    }
+    const professorExists = await isValidProfessor(data.ID_TEACHER);
+    if (!professorExists) return { error: "El profesor no existe o el ID es inválido." };
+
+
+    data.ID_USER = user.ID_USER;
 
     const isUserValid = await isValidUser(ID_USER);
     if (!isUserValid) {
         return { error: "El usuario no existe o el ID es inválido." };
     }
 
-    return { success: true };
+
+    const course = await Course.create(data);
+    return { success: true, course };
 };
 
-// Function to update an existing course
-export const updateCourseLogic = async ({ DSC_NAME, ID_TEACHER, ID_USER, DSC_CODE, DSC_ATTENTION, DSC_COLOR }) => {
-    console.log(DSC_NAME, ID_TEACHER, DSC_CODE, DSC_ATTENTION, DSC_COLOR);
+// Update Course Logic
+export const updateCourseLogic = async (id, data) => {
+    const error = validateCourse(data);
+    if (error) return { error };
 
-    const validationError = validateCourse({
-        DSC_NAME,
-        ID_TEACHER,
-        ID_USER,
-        DSC_CODE,
-        DSC_ATTENTION,
-        DSC_COLOR,
+    const user = await User.findOne({
+        where: { DSC_IDENTIFICATION: data.ID_USER },
+        attributes: ['ID_USER'],
+    });
+    
+    if (!user) return { error: "Usuario no encontrado con esa cédula." };
+
+    const professorExists = await isValidProfessor(data.ID_TEACHER);
+    if (!professorExists) return { error: "El profesor no existe o el ID es inválido." };
+
+    data.ID_USER = user.ID_USER;
+
+    const [updatedRows] = await Course.update(data, {
+        where: { ID_COURSE: id }
     });
 
-    if (validationError) {
-        return { error: validationError };
+    if (updatedRows === 0) {
+        return { error: "No se encontró el curso para actualizar." };
     }
 
-    const isProfessorValid = await isValidProfessor(ID_TEACHER);
-    if (!isProfessorValid) {
-        return { error: "El profesor no existe o el ID es inválido." };
-    }
+    const updatedCourse = await Course.findByPk(id);
 
-    const isUserValid = await isValidUser(ID_TEACHER);
-    if (!isUserValid) {
-        return { error: "El usuario no existe o el ID es inválido." };
+    return { success: true, course: updatedCourse };
+};
+
+// Delete Course Logic
+export const deleteCourseLogic = async (id) => {
+    const course = await Course.findByPk(id);
+    if (!course) return { error: "Curso no encontrado." };
+
+    await Notes.destroy({ where: { ID_COURSE: id } });
+    await course.destroy();
+
+    const otherCourses = await Course.count({ where: { ID_TEACHER: course.ID_TEACHER } });
+    if (otherCourses === 0) {
+        await Professor.destroy({ where: { ID_TEACHER: course.ID_TEACHER } });
     }
 
     return { success: true };
 };
 
-// Function to delete an existing course
-export const deleteCourseLogic = async (courseId) => {
-    try {
-        const course = await Course.findOne({ where: { ID_COURSE: courseId } });
+// Search Courses Logic
+export const searchCoursesLogic = async ({ page, pageSize, termSearch, orderByField, order, userId }) => {
+    const limit = parseInt(pageSize);
+    const offset = (parseInt(page) - 1) * limit;
+    const field = ['DSC_NAME', 'DSC_CODE', 'DSC_ATTENTION'].includes(orderByField) ? orderByField : 'DSC_NAME';
+    const sortOrder = order.toLowerCase() === 'desc' ? 'desc' : 'asc';
 
-        if (!course) {
-            return { error: "Curso no encontrado." };
-        }
+    const { count, rows } = await Course.findAndCountAll({
+        limit,
+        offset,
+        order: [[field, sortOrder]],
+        where: {
+            ID_USER: userId,
+            [Op.or]: [
+                { DSC_NAME: { [Op.like]: `%${termSearch}%` } },
+                { DSC_CODE: { [Op.like]: `%${termSearch}%` } },
+                { DSC_ATTENTION: { [Op.like]: `%${termSearch}%` } },
+            ]
+        },
+        include: [{
+            model: Professor,
+            attributes: ['DSC_FIRST_NAME', 'DSC_LAST_NAME_ONE', 'DSC_LAST_NAME_TWO'],
+        }]
+    });
 
-        return { success: true, course };
-    } catch (error) {
-        return { error: error.message };
-    }
+    return { total: count, courses: rows };
+};
+
+// Get All Courses Logic
+export const getAllCoursesLogic = async ({ page, pageSize, userId, orderByField, order }) => {
+    const limit = parseInt(pageSize);
+    const offset = (parseInt(page) - 1) * limit;
+
+    const user = await User.findOne({
+        where: { DSC_IDENTIFICATION: userId },
+        attributes: ['ID_USER'],
+    });
+
+    if (!user) return { error: "Usuario no encontrado con esa cédula." };
+
+    const field = ['DSC_NAME', 'DSC_CODE', 'DSC_ATTENTION'].includes(orderByField) ? orderByField : 'DSC_NAME';
+    const sortOrder = order.toLowerCase() === 'desc' ? 'desc' : 'asc';
+
+    const { count, rows } = await Course.findAndCountAll({
+        where: { ID_USER: user.ID_USER },
+        limit,
+        offset,
+        order: [[field, sortOrder]],
+        include: [{
+            model: Professor,
+            attributes: ['DSC_FIRST_NAME', 'DSC_LAST_NAME_ONE', 'DSC_LAST_NAME_TWO', 'DSC_EMAIL', 'DSC_PHONE'],
+        }],
+    });
+
+    return { total: count, courses: rows };
 };
