@@ -41,7 +41,14 @@ export const createCourseLogic = async (data) => {
     const professorExists = await isValidProfessor(data.ID_TEACHER);
     if (!professorExists) return { error: "El profesor no existe o el ID es inválido." };
 
+
     data.ID_USER = user.ID_USER;
+
+    const isUserValid = await isValidUser(ID_USER);
+    if (!isUserValid) {
+        return { error: "El usuario no existe o el ID es inválido." };
+    }
+
 
     const course = await Course.create(data);
     return { success: true, course };
