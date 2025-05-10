@@ -25,46 +25,16 @@ async function isValidCourse(ID_COURSE) {
 
 export const registerNote = async (req, res) => {
     try {
-        const { ID_USER, ID_COURSE, DSC_TITLE, DSC_COMMENT } = req.body;
-        const DATE_NOTE = await getDateCR();
-        const userObj = await User.findOne({where:{ID_USER: ID_USER}});
-
-        if(!userObj){
-            return res.status(404).json({message: "El ID usuario no existe"});
-        }
-
-        const courseObj =await Course.findOne({where:{ID_COURSE: ID_COURSE}});
-        if(!courseObj){
-            return res.status(404).json({message: "El ID del curso no existe"});
-        }
-
-        const newNote = new Notes({
-            ID_USER, 
-            ID_COURSE,
-             DSC_TITLE, 
-             DSC_COMMENT,
-             DATE_NOTE
-            });
-
-            const noteSaved = await newNote.save();
-        if(noteSaved){
-            res.status(200).json({
-                ID_STUDENT_NOTE: noteSaved.ID_STUDENT_NOTE,
-                ID_USER: noteSaved.ID_USER,
-                ID_COURSE: noteSaved.ID_COURSE,
-                DSC_TITLE:noteSaved.DSC_TITLE,
-                DSC_COMMENT: noteSaved.DSC_COMMENT,
-                DATE_NOTE: noteSaved.DATE_NOTE,
-                message: 'Registro realizado correctamente.',
-              });
-
-        }
-        
-    } catch (error) {
-        logger.error(`Error inesperado al crear la nota: ${error.message}`);
-        return res.status(500).json({ message: error.message });
-    }
-};
+           const { error, success, course } = await createNoteLogic(req.body);
+   
+           if (error) return res.status(400).json({ message: error });
+   
+           res.json({ status: 200, course, message: "Nota creada exitosamente" });
+       } catch (error) {
+           logger.error("Error al registrar nota: " + error.message);
+           res.status(500).json({ message: error.message });
+       }
+   };
 
 export const getAllNotes = async (req, res) => {
     try {
