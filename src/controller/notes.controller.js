@@ -250,7 +250,9 @@ export const getNotesByUserID = async (req, res) => {
         const limit = parseInt(pageSize);
         const offset = (parseInt(page) - 1) * limit;
 
-        if (!userId) {
+        const user = await User.findOne({ where: { DSC_IDENTIFICATION: userId } });
+
+        if (!user) {
             return res.status(400).json({ message: "Se requiere el ID_USER." });
         }
 
@@ -260,7 +262,7 @@ export const getNotesByUserID = async (req, res) => {
 
         const { count, rows } = await Notes.findAndCountAll({
             where: {
-                ID_USER: userId,
+                ID_USER: user.ID_USER,
             },
             limit,
             offset,
