@@ -1,7 +1,8 @@
 import Professor from "../model/professorModel.js";
 import { Op } from "sequelize";
 import Console from "../Lib/Console.js";
-
+import User from "../model/user.model.js";
+import Course from "../model/course.model.js";
 const logger = new Console("P_CONTROLLER");
 
 function isNotEmpty(value) {
@@ -13,19 +14,14 @@ function isNotEmpty(value) {
   return false;
 }
 
-// function to get all professors
 export const getProfessors = async (req) => {
   try {
-    // Pagination params
     const {
-      page = 1,
-      pageSize = 5,
       orderByField = "DSC_FIRST_NAME",
       order = "asc",
+      userId,
     } = req.query;
-    const limit = parseInt(pageSize);
-    const offset = (parseInt(page) - 1) * limit;
-    
+
     const field = [
       "DSC_FIRST_NAME",
       "DSC_LAST_NAME_ONE",
@@ -35,43 +31,61 @@ export const getProfessors = async (req) => {
       ? orderByField
       : "DSC_FIRST_NAME";
 
-    // validation for order
     const sortOrder = ["asc", "desc"].includes(order.toLowerCase())
       ? order.toLowerCase()
       : "asc";
-    
-    const { count, rows } = await Professor.findAndCountAll({
+
+    const include = [];
+
+    // Si viene un userId, asumimos que es la cédula
+    let realUserId = null;
+
+    if (userId && !isNaN(userId)) {
+      const user = await User.findOne({
+        where: { DSC_IDENTIFICATION: userId },
+        attributes: ['ID_USER'],
+      });
+
+      if (!user) {
+        const message = "Usuario no encontrado con esa cédula.";
+        logger.warning(message);
+        return { status: 404, error: message };
+      }
+
+      realUserId = user.ID_USER;
+
+      include.push({
+        model: Course,
+        where: { ID_USER: realUserId },
+        attributes: [],
+        required: true,
+      });
+    }
+
+    const professors = await Professor.findAll({
       where: {
-        STATUS: 1, 
+        STATUS: 1,
       },
-      limit,
-      offset,
-      order: [
-        [field, sortOrder],
-      ],
+      include,
+      order: [[field, sortOrder]],
       distinct: true,
     });
 
-    if (rows.length === 0) {
-      const message = "No hay profesores registrados.";
+    if (professors.length === 0) {
+      const message = "No hay profesores registrados para este usuario.";
       logger.warning(message);
-      return { message: message, status: 204 };
+      return { message, status: 204 };
     }
-    
+
     return {
       success: true,
-      data: {
-        total: count,
-        totalPage: Math.ceil(count / limit),
-        currentPage: parseInt(page),
-        pageSize: limit,
-        professors: rows,
-      },
+      total: professors.length,
+      professors: professors,
       status: 200,
     };
   } catch (error) {
     logger.error(error);
-    return { status: 500, error: error };
+    return { status: 500, error: error.message };
   }
 };
 
@@ -265,20 +279,20 @@ export const findProfessor = async (req) => {
     }
 
     return {
-        success: true,
-        data: {
-            total: count,
-            totalPage: Math.ceil(count / limit),
-            currentPage: parseInt(page),
-            pageSize: limit,
-            professors: rows,
-        },
-        status: 200
-      };
+      success: true,
+      data: {
+        total: count,
+        totalPage: Math.ceil(count / limit),
+        currentPage: parseInt(page),
+        pageSize: limit,
+        professors: rows,
+      },
+      status: 200
+    };
 
 
   } catch (error) {
     logger.error("Error al buscar profesor: " + error);
-    return {success: false, error: error.message};
+    return { success: false, error: error.message };
   }
 };
