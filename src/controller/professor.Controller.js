@@ -15,10 +15,11 @@ const logger = new Console("P_CONTROLLER");
 export const getAllProfessors = async (req, res) => {
   const result = await getProfessors(req);
   if (result.error) {
-    return res.status(400).json({ success: false, message: result.error });
+    return res.status(500).json({ message: result.error });
   }
-  return res.status(200).json({ success: true, data: result.data });
+  return res.status(result.status).json(result.professors || []);
 };
+
 
 export const registerProfessor = async (req, res) => {
   const result = await addProfessor(req);
