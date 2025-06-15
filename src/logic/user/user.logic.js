@@ -17,9 +17,27 @@ export const validateRegister = async (DSC_EMAIL) => {
     }
 };
 
+
+export const validateRegisterUpdate = async (DSC_EMAIL,ID_USER) => {
+    try {
+        const output = await existDataUpdate(DSC_EMAIL,ID_USER);
+        return (output !== false) ? output : true;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
 // validations methods
 async function existData(email) {
     if (await existEmail(email))
+        return ["El correo ya se encuentra en uso."];
+
+
+    return false;
+}
+
+async function existDataUpdate(email,ID_USER) {
+    if (await existEmailForUpdate(email,ID_USER))
         return ["El correo ya se encuentra en uso."];
 
 
@@ -31,6 +49,17 @@ async function existEmail(email) {
     if (emailFound)
         return true;
     return false;
+}
+
+async function existEmailForUpdate(email, currentUserId) {
+    const emailFound = await User.findOne({
+        where: {
+            DSC_EMAIL: email.toLowerCase(),
+            DSC_IDENTIFICATION: { [Op.ne]: currentUserId } 
+        }
+    });
+
+    return !!emailFound; // true si existe, false si no
 }
 
 async function exist_Id_User(DSC_IDENTIFICATION) {
@@ -186,9 +215,9 @@ function message_Update(result, res) {
 
 export const update_User = async (req, res) => {
     try {
-        const {
-            DSC_FIRST_NAME, DSC_LAST_NAME_ONE, DSC_PASSWORD, CONFIRM_PASSWORD, DSC_CAREER } = req.body;
-
+        const {DSC_FIRST_NAME, DSC_LAST_NAME_ONE,DSC_EMAIL, DSC_CAREER } = req.body;
+           
+            const { id } = req.params
         const validateFields = validateUpdateUser(req);
         if (validateFields !== true) {
             return res.status(400).json({
@@ -203,27 +232,23 @@ export const update_User = async (req, res) => {
             })
         }
 
-        if (DSC_PASSWORD || CONFIRM_PASSWORD) {
-            if (!validate_Passwords(DSC_PASSWORD, CONFIRM_PASSWORD)) {
-                return res.status(400).json({
-                    message: 'Las contraseñas no coinciden.',
-                })
-            }
+
+        const output = await validateRegisterUpdate(DSC_EMAIL,id);
+        if (output !== true) {
+            return res.status(400).json({
+                message: output,
+            })
         }
 
-        const passwordHash = DSC_PASSWORD
-            ? await encryptData(DSC_PASSWORD, 10)
-            : user.DSC_PASSWORD;
-
-
+    
         const newUser = {
             DSC_FIRST_NAME,
             DSC_LAST_NAME_ONE,
-            DSC_PASSWORD: passwordHash,
+            DSC_EMAIL: DSC_EMAIL,
             DSC_CAREER,
         };
 
-        const result = await userServices.updateUser(newUser);
+        const result = await userServices.updateUser(id,newUser);
 
         message_Update(result,res);
     } catch (error) {

@@ -35,19 +35,26 @@ export const userServices = {
     return null;
    }
   },
-  async updateUser(data){
-    try{
-    const user =  await user.update({
-      DSC_FIRST_NAME: data.DSC_FIRST_NAME,
-      DSC_LAST_NAME_ONE: data.DSC_LAST_NAME_ONE,
-      DSC_PASSWORD: data.DSC_PASSWORD, 
-      DSC_CAREER: data.DSC_CAREER || "N/E",
-    });
-    return user;
-  }catch(error){
-    console.error('Error en updateUser:', error);
-    return null;
-  }
+  async updateUser(identification, data) {
+    try {
+      const foundUser = await User.findOne({
+        where: { DSC_IDENTIFICATION: identification }
+      });
+
+      if (!foundUser) return null;
+
+      const updatedUser = await foundUser.update({
+        DSC_FIRST_NAME: data.DSC_FIRST_NAME,
+        DSC_LAST_NAME_ONE: data.DSC_LAST_NAME_ONE,
+        DSC_EMAIL: data.DSC_EMAIL,
+        DSC_CAREER: data.DSC_CAREER || "N/E",
+      });
+
+      return updatedUser;
+    } catch (error) {
+      console.error('Error en updateUser:', error);
+      return null;
+    }
   }
 };
 
