@@ -12,6 +12,7 @@ import courseRoutes from "./routes/course.routes.js";
 import noteRoutes from "./routes/notes.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import loginRoute from "./routes/logic.routes.js"
+import evaluationRoute from "./routes/evaluation.routes.js";
 
 const logger = new Console("APP");
 
@@ -33,6 +34,8 @@ const courseDoc = loadSwaggerDoc('./swagger/course.yml');
 const userDoc = loadSwaggerDoc('./swagger/user.yml');
 const loginDoc = loadSwaggerDoc('./swagger/login.yml');
 const noteDoc = loadSwaggerDoc('./swagger/note.yml');
+const evaluationDoc = loadSwaggerDoc('./swagger/evaluation.yml');
+
 
 // configure swagger UI
 const options = {
@@ -59,6 +62,10 @@ const options = {
             {
                 url: '/api-docs/note.json',
                 name: 'Notes'
+            },
+             {
+                url: '/api-docs/evaluation.json',
+                name: 'Evaluations'
             }
         ]
     }
@@ -92,6 +99,10 @@ app.get('/api-docs/note.json', (req, res) => {
     res.json(noteDoc);
 });
 
+app.get('/api-docs/evaluation.json', (req, res) => {
+    res.json(evaluationDoc);
+});
+
 // principal routes for swagger UI
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(null, options));
 
@@ -101,6 +112,7 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/users",userRoutes);
 app.use("/api/Auth",loginRoute);
+app.use("/api/evaluation",loginRoute);
 
 // Error management
 app.use((err, req, res, next) => {
