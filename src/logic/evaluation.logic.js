@@ -77,7 +77,7 @@ export const createEvaluationLogic = async (req, res) => {
             }, { transaction: t });
 
             const newStudentEvaluation = await StudentEvaluation.create({
-                ID_TYPE: newEvaluationType.ID_TYPE, // Usamos el ID recién creado
+                ID_TYPE: newEvaluationType.ID_TYPE, 
                 SCORE_OBTAINED: data.SCORE_OBTAINED,
                 DSC_COMMENT: data.DSC_COMMENT || null
             }, { transaction: t });
@@ -105,89 +105,87 @@ export const updateEvaluationLogic = async (req, res) => {
     try {
         const { id } = req.params;
         const data = req.body;
-      
-        const isEvaluationType = data.hasOwnProperty("ID_COURSE") &&
-                                 data.hasOwnProperty("WEIGHT") &&
-                                 data.hasOwnProperty("DSC_NAME") &&
-                                 data.hasOwnProperty("DATE_EVALUATION") &&
-                                 data.hasOwnProperty("ID_USER");
 
-        const isStudentEvaluation = data.hasOwnProperty("ID_TYPE") &&
-                                    data.hasOwnProperty("SCORE_OBTAINED");
+        const hasEvaluationTypeFields = data.hasOwnProperty("ID_COURSE") || 
+                                      data.hasOwnProperty("WEIGHT") || 
+                                      data.hasOwnProperty("DSC_NAME") || 
+                                      data.hasOwnProperty("DATE_EVALUATION") || 
+                                      data.hasOwnProperty("ID_USER");
 
-        if (isEvaluationType) {
-            const {
-                ID_COURSE,
-                DSC_NAME,
-                WEIGHT,
-                DATE_EVALUATION,
-                DSC_EVALUATION,
-                ID_USER
-            } = data;
+        const hasStudentEvaluationFields = data.hasOwnProperty("SCORE_OBTAINED") || 
+                                         data.hasOwnProperty("DSC_COMMENT");
 
-            const validation = validateUpdateEvaluationType(req);
-            if (validation !== true) {
-                return res.status(400).json({ message: validation });
+        const result = await dbConnection.transaction(async (t) => {
+            const results = {};
+            
+            if (hasEvaluationTypeFields) {
+                const evaluationType = await EvaluationType.findByPk(id, { transaction: t });
+                if (!evaluationType) {
+                    throw new Error("Tipo de evaluación no encontrado");
+                }
+
+                if (data.ID_COURSE) {
+                    const course = await Course.findByPk(data.ID_COURSE, { transaction: t });
+                    if (!course) throw new Error("El curso especificado no existe");
+                }
+
+                if (data.ID_USER) {
+                    const user = await User.findByPk(data.ID_USER, { transaction: t });
+                    if (!user) throw new Error("El usuario especificado no existe");
+                }
+
+                await evaluationType.update({
+                    ID_COURSE: data.ID_COURSE || evaluationType.ID_COURSE,
+                    DSC_NAME: data.DSC_NAME || evaluationType.DSC_NAME,
+                    WEIGHT: data.WEIGHT || evaluationType.WEIGHT,
+                    DATE_EVALUATION: data.DATE_EVALUATION || evaluationType.DATE_EVALUATION,
+                    DSC_EVALUATION: data.DSC_EVALUATION !== undefined ? data.DSC_EVALUATION : evaluationType.DSC_EVALUATION,
+                    ID_USER: data.ID_USER || evaluationType.ID_USER
+                }, { transaction: t });
+
+                results.evaluationType = evaluationType;
             }
 
-            const course = await Course.findByPk(ID_COURSE);
-            if (!course) {
-                return res.status(400).json({ message: "El curso especificado no existe." });
+            if (hasStudentEvaluationFields) {
+                const studentEvaluation = await StudentEvaluation.findOne({ 
+                    where: { ID_TYPE: id },
+                    transaction: t 
+                });
+
+                if (!studentEvaluation) {
+                    throw new Error("Evaluación del estudiante no encontrada");
+                }
+
+                await studentEvaluation.update({
+                    SCORE_OBTAINED: data.SCORE_OBTAINED !== undefined ? data.SCORE_OBTAINED : studentEvaluation.SCORE_OBTAINED,
+                    DSC_COMMENT: data.DSC_COMMENT !== undefined ? data.DSC_COMMENT : studentEvaluation.DSC_COMMENT
+                }, { transaction: t });
+
+                results.studentEvaluation = studentEvaluation;
             }
 
-            const user = await User.findByPk(ID_USER);
-            if (!user) {
-                return res.status(400).json({ message: "El usuario especificado no existe." });
-            }
+            return results;
+        });
 
-            const evaluation = await EvaluationType.findByPk(id);
-            if (!evaluation) {
-                return res.status(404).json({ message: "Tipo de evaluación no encontrado." });
-            }
-
-            await evaluation.update({
-                ID_COURSE,
-                DSC_NAME,
-                WEIGHT,
-                DATE_EVALUATION,
-                DSC_EVALUATION,
-                ID_USER
-            });
-
-            return res.status(200).json({
-                message: "Tipo de evaluación actualizado exitosamente.",
-                evaluation
-            });
+        let message = "";
+        if (result.evaluationType && result.studentEvaluation) {
+            message = "Evaluación completa actualizada exitosamente";
+        } else if (result.evaluationType) {
+            message = "Tipo de evaluación actualizado exitosamente";
+        } else if (result.studentEvaluation) {
+            message = "Evaluación del estudiante actualizada exitosamente";
         }
 
-        if (isStudentEvaluation) {
-            const {
-                ID_TYPE,
-                SCORE_OBTAINED,
-                DSC_COMMENT
-            } = data;
-
-            const evaluation = await StudentEvaluation.findByPk(id);
-            if (!evaluation) {
-                return res.status(404).json({ message: "Evaluación del estudiante no encontrada." });
-            }
-
-            await evaluation.update({
-                ID_TYPE,
-                SCORE_OBTAINED,
-                DSC_COMMENT
-            });
-
-            return res.status(200).json({
-                message: "Evaluación del estudiante actualizada exitosamente.",
-                evaluation
-            });
-        }
-
-        return res.status(400).json({ message: "Los datos proporcionados no coinciden con ningún formato conocido." });
+        return res.status(200).json({
+            message,
+            ...result
+        });
 
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ 
+            message: "Error al actualizar evaluación",
+            error: error.message 
+        });
     }
 };
 
@@ -255,5 +253,47 @@ export const getEvaluationsByUserID = async (req, res) => {
     } catch (error) {
         console.error("Error al obtener evaluaciones por ID de usuario:", error);
         return res.status(500).json({ message: error.message });
+    }
+};
+
+export const deleteEvaluationLogic = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const result = await dbConnection.transaction(async (t) => {
+
+            const deletedStudentEvaluations = await StudentEvaluation.destroy({
+                where: { ID_TYPE: id },
+                transaction: t
+            });
+
+            const deletedEvaluationType = await EvaluationType.destroy({
+                where: { ID_TYPE: id },
+                transaction: t
+            });
+
+            if (deletedEvaluationType === 0) {
+                throw new Error("No se encontró el tipo de evaluación a eliminar");
+            }
+
+            return {
+                deletedEvaluationType,
+                deletedStudentEvaluations
+            };
+        });
+
+        return res.status(200).json({
+            message: "Evaluación eliminada completamente",
+            details: {
+                evaluationTypeDeleted: result.deletedEvaluationType,
+                studentEvaluationsDeleted: result.deletedStudentEvaluations
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error al eliminar la evaluación",
+            error: error.message
+        });
     }
 };

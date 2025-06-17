@@ -1,4 +1,4 @@
-import { createEvaluationLogic, updateEvaluationLogic, getEvaluationsByUserID} from "../logic/evaluation.logic.js";
+import { createEvaluationLogic, updateEvaluationLogic, getEvaluationsByUserID, deleteEvaluationLogic} from "../logic/evaluation.logic.js";
 import Console from "../Lib/Console.js";
 
 const logger = new Console("EVALUATION-CONTROLLER");
@@ -27,3 +27,11 @@ export const registerEvaluation = async (req, res) => {
     }
    };
    
+
+   export const deleteEvaluation = async (req, res) => {
+     try {
+      deleteEvaluationLogic(req,res);  
+     } catch (error) {
+       return res.status(500).json({ message: error.message });
+     }
+   };

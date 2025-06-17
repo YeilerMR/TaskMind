@@ -17,128 +17,25 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                ID_COURSE:
-                  type: integer
-                  description: ID del curso asociado
-                DSC_NAME:
-                  type: string
-                  description: Nombre de la evaluación
-                WEIGHT:
-                  type: number
-                  format: double
-                  description: Peso de la evaluación
-                DATE_EVALUATION:
-                  type: string
-                  description: Fecha de la evaluación
-                DSC_EVALUATION:
-                  type: string
-                  description: Descripción de la evaluación (opcional)
-                ID_USER:
-                  type: integer
-                  description: ID del usuario que crea la evaluación
-                SCORE_OBTAINED:
-                  type: number
-                  format: double
-                  description: Puntaje obtenido
-                DSC_COMMENT:
-                  type: string
-                  description: Comentario sobre el resultado (opcional)
+              $ref: '#/components/schemas/EvaluationCreation'
       responses:
-        '200':
+        '201':
           description: Evaluación registrada correctamente
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                  message:
-                    type: string
-                  evaluationType:
-                    $ref: '#/components/schemas/EvaluationType'
-                  studentEvaluation:
-                    $ref: '#/components/schemas/StudentEvaluation'
+                $ref: '#/components/schemas/EvaluationCreationResponse'
         '400':
           description: Campos incompletos o inválidos
         '500':
           description: Error interno del servidor
 
-  /api/evaluation/search_evaluation:
-    get:
-      summary: Obtiene evaluaciones por ID de usuario
-      description: Retorna las evaluaciones asociadas a un usuario específico con paginación
-      parameters:
-        - in: query
-          name: userId
-          required: true
-          schema:
-            type: string
-          description: Identificación del usuario
-        - in: query
-          name: page
-          schema:
-            type: integer
-            default: 1
-          description: Número de página
-        - in: query
-          name: pageSize
-          schema:
-            type: integer
-            default: 10
-          description: Tamaño de página
-        - in: query
-          name: orderByField
-          schema:
-            type: string
-            default: "DATE_EVALUATION"
-            enum:
-              - DATE_EVALUATION
-              - DSC_NAME
-              - WEIGHT
-          description: Campo para ordenar
-        - in: query
-          name: order
-          schema:
-            type: string
-            default: "asc"
-            enum:
-              - asc
-              - desc
-          description: Dirección del orden
-      responses:
-        '200':
-          description: Lista de evaluaciones obtenida exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  total:
-                    type: integer
-                  totalPages:
-                    type: integer
-                  currentPage:
-                    type: integer
-                  pageSize:
-                    type: integer
-                  evaluations:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/EvaluationWithDetails'
-        '204':
-          description: No se encontraron evaluaciones
-        '400':
-          description: ID de usuario requerido
-        '500':
-          description: Error interno del servidor
-
   /api/evaluation/update_evaluation/{id}:
     put:
-      summary: Actualiza una evaluación existente (tipo o resultado)
-      description: Modifica los datos de una evaluación tipo o su resultado
+      summary: Actualiza una evaluación existente
+      description: |
+        Actualiza una evaluación en las tablas EvaluationType y/o StudentEvaluation.
+        El sistema detectará automáticamente qué campos actualizar basado en los datos proporcionados.
       parameters:
         - in: path
           name: id
@@ -151,23 +48,16 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - $ref: '#/components/schemas/EvaluationTypeUpdate'
-                - $ref: '#/components/schemas/StudentEvaluationUpdate'
+              $ref: '#/components/schemas/EvaluationUpdate'
       responses:
         '200':
           description: Evaluación actualizada correctamente
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  evaluation:
-                    oneOf:
-                      - $ref: '#/components/schemas/EvaluationType'
-                      - $ref: '#/components/schemas/StudentEvaluation'
+                oneOf:
+                  - $ref: '#/components/schemas/EvaluationTypeUpdateResponse'
+                  - $ref: '#/components/schemas/StudentEvaluationUpdateResponse'
         '400':
           description: Datos inválidos o no coinciden con ningún formato
         '404':
@@ -175,8 +65,189 @@ paths:
         '500':
           description: Error interno del servidor
 
+  /api/evaluation/delete_evaluation/{id}:
+    delete:
+      summary: Elimina una evaluación completa
+      description: |
+        Elimina un registro de evaluación y todos sus resultados asociados.
+        Elimina tanto el tipo de evaluación (EvaluationType) como los resultados de estudiantes (StudentEvaluation) relacionados.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del tipo de evaluación a eliminar (ID_TYPE)
+      responses:
+        '200':
+          description: Evaluación eliminada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationDeleteResponse'
+        '404':
+          description: Evaluación no encontrada
+        '500':
+          description: Error interno del servidor
+
+  /api/evaluation/search_evaluation:
+    get:
+      summary: Obtiene evaluaciones por ID de usuario
+      description: Retorna las evaluaciones asociadas a un usuario específico con paginación
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - $ref: '#/components/parameters/orderByField'
+        - $ref: '#/components/parameters/order'
+      responses:
+        '200':
+          description: Lista de evaluaciones obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationSearchResponse'
+        '204':
+          description: No se encontraron evaluaciones
+        '400':
+          description: ID de usuario requerido
+        '500':
+          description: Error interno del servidor
+
 components:
   schemas:
+    # Esquemas para creación
+    EvaluationCreation:
+      type: object
+      properties:
+        ID_COURSE:
+          type: integer
+          example: 3
+        DSC_NAME:
+          type: string
+          example: "Examen Parcial"
+        WEIGHT:
+          type: number
+          format: double
+          example: 20.5
+        DATE_EVALUATION:
+          type: string
+          format: date
+          example: "2025-06-15"
+        DSC_EVALUATION:
+          type: string
+          nullable: true
+          example: "Evaluación de mitad de curso"
+        ID_USER:
+          type: integer
+          example: 1
+        SCORE_OBTAINED:
+          type: number
+          format: double
+          example: 85.5
+        DSC_COMMENT:
+          type: string
+          nullable: true
+          example: "Buen rendimiento"
+      required:
+        - ID_COURSE
+        - DSC_NAME
+        - WEIGHT
+        - DATE_EVALUATION
+        - ID_USER
+        - SCORE_OBTAINED
+
+    EvaluationCreationResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Evaluación registrada exitosamente en ambas tablas"
+        evaluationType:
+          $ref: '#/components/schemas/EvaluationType'
+        studentEvaluation:
+          $ref: '#/components/schemas/StudentEvaluation'
+
+    # Esquemas para actualización
+    EvaluationUpdate:
+      type: object
+      properties:
+        ID_COURSE:
+          type: integer
+          nullable: true
+          example: 3
+        DSC_NAME:
+          type: string
+          nullable: true
+          example: "Examen Final"
+        WEIGHT:
+          type: number
+          format: double
+          nullable: true
+          example: 30.0
+        DATE_EVALUATION:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-06-30"
+        DSC_EVALUATION:
+          type: string
+          nullable: true
+          example: "Evaluación actualizada"
+        ID_USER:
+          type: integer
+          nullable: true
+          example: 1
+        ID_TYPE:
+          type: integer
+          nullable: true
+          example: 5
+        SCORE_OBTAINED:
+          type: number
+          format: double
+          nullable: true
+          example: 90.0
+        DSC_COMMENT:
+          type: string
+          nullable: true
+          example: "Excelente desempeño"
+
+    # Esquema para eliminación
+    EvaluationDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Evaluación eliminada completamente"
+        details:
+          type: object
+          properties:
+            evaluationTypeDeleted:
+              type: integer
+              example: 1
+            studentEvaluationsDeleted:
+              type: integer
+              example: 3
+
+    EvaluationTypeUpdateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Tipo de evaluación actualizado exitosamente"
+        evaluation:
+          $ref: '#/components/schemas/EvaluationType'
+
+    StudentEvaluationUpdateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Evaluación del estudiante actualizada exitosamente"
+        evaluation:
+          $ref: '#/components/schemas/StudentEvaluation'
+
+    # Esquemas base
     EvaluationType:
       type: object
       properties:
@@ -191,6 +262,7 @@ components:
           format: double
         DATE_EVALUATION:
           type: string
+          format: date
         DSC_EVALUATION:
           type: string
         ID_USER:
@@ -209,6 +281,22 @@ components:
         DSC_COMMENT:
           type: string
 
+    EvaluationSearchResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        totalPages:
+          type: integer
+        currentPage:
+          type: integer
+        pageSize:
+          type: integer
+        evaluations:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationWithDetails'
+
     EvaluationWithDetails:
       type: object
       properties:
@@ -223,6 +311,7 @@ components:
           format: double
         DATE_EVALUATION:
           type: string
+          format: date
         DSC_EVALUATION:
           type: string
         ID_USER:
@@ -246,39 +335,46 @@ components:
             DSC_LAST_NAME_ONE:
               type: string
 
-    EvaluationTypeUpdate:
-      type: object
-      properties:
-        ID_COURSE:
-          type: integer
-        DSC_NAME:
-          type: string
-        WEIGHT:
-          type: number
-          format: double
-        DATE_EVALUATION:
-          type: string
-        DSC_EVALUATION:
-          type: string
-        ID_USER:
-          type: integer
-      required:
-        - ID_COURSE
-        - DSC_NAME
-        - WEIGHT
-        - DATE_EVALUATION
-        - ID_USER
-
-    StudentEvaluationUpdate:
-      type: object
-      properties:
-        ID_TYPE:
-          type: integer
-        SCORE_OBTAINED:
-          type: number
-          format: double
-        DSC_COMMENT:
-          type: string
-      required:
-        - ID_TYPE
-        - SCORE_OBTAINED
+  parameters:
+    userId:
+      in: query
+      name: userId
+      required: true
+      schema:
+        type: integer
+      description: ID del usuario
+    page:
+      in: query
+      name: page
+      schema:
+        type: integer
+        default: 1
+      description: Número de página
+    pageSize:
+      in: query
+      name: pageSize
+      schema:
+        type: integer
+        default: 10
+      description: Tamaño de página
+    orderByField:
+      in: query
+      name: orderByField
+      schema:
+        type: string
+        default: "DATE_EVALUATION"
+        enum:
+          - DATE_EVALUATION
+          - DSC_NAME
+          - WEIGHT
+      description: Campo para ordenar
+    order:
+      in: query
+      name: order
+      schema:
+        type: string
+        default: "asc"
+        enum:
+          - asc
+          - desc
+      description: Dirección del orden
