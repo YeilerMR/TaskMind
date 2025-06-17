@@ -1,22 +1,14 @@
 import { createEvaluationLogic, updateEvaluationLogic, getEvaluationsByUserID} from "../logic/evaluation.logic.js";
-import Course from "../model/course.model.js";
-import Notes from "../model/note.model.js";
-import User from "../model/user.model.js";
-import { Op } from 'sequelize';
 import Console from "../Lib/Console.js";
-import {getDateCR} from "../Lib/date.js";
+
+const logger = new Console("EVALUATION-CONTROLLER");
 
 export const registerEvaluation = async (req, res) => {
-    try {
-           const { error, success, evaluation } = await createEvaluationLogic(req.body);
-   
-           if (error) return res.status(400).json({ message: error });
-   
-           res.json({ status: 200, evaluation, message: "Evaluacion creada exitosamente" });
-       } catch (error) {
-           logger.error("Error al registrar la Evaluacion: " + error.message);
-           res.status(500).json({ message: error.message });
-       }
+   try {
+       createEvaluationLogic(req, res);
+     } catch (error) {
+       res.status(500).json({ message: error.message });
+     }
    };
 
    export const updateEvaluation = async (req, res) => {

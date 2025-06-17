@@ -78,7 +78,7 @@ const StudentEvaluation = dbConnection.define("StudentEvaluation", {
 },
     {
         timestamps: false,
-        tableName: "tsim_student_evaluation"
+        tableName: "tsit_student_evaluation"
     });
 
 EvaluationType.belongsTo(Course, {

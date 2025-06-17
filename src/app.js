@@ -112,7 +112,7 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/users",userRoutes);
 app.use("/api/Auth",loginRoute);
-app.use("/api/evaluation",loginRoute);
+app.use("/api/evaluation",evaluationRoute);
 
 // Error management
 app.use((err, req, res, next) => {

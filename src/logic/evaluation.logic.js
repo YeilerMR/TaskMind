@@ -4,6 +4,7 @@ const { EvaluationType, StudentEvaluation } = models;
 import Course from "../model/course.model.js";
 import User from "../model/user.model.js";
 import { DOUBLE, Op } from "sequelize";
+import dbConnection from "../database/dbConnection.js";
 
 // Validations
 const validateEvaluation = (evaluationData) => {
@@ -37,39 +38,67 @@ export const isValidUser = async (ID_USER) => {
     return user;
 };
 
-export const createEvaluationLogic = async (data) => {
-    const error = validateEvaluation(data);
-    if (error) return { error };
+export const createEvaluationLogic = async (req, res) => {
+    try {
+        const data = req.body;
+        
+        const hasAllFields = data.hasOwnProperty("ID_COURSE") &&
+                            data.hasOwnProperty("WEIGHT") &&
+                            data.hasOwnProperty("DSC_NAME") &&
+                            data.hasOwnProperty("DATE_EVALUATION") &&
+                            data.hasOwnProperty("ID_USER") &&
+                            data.hasOwnProperty("SCORE_OBTAINED");
 
-    const user = await User.findOne({
-        where: { DSC_IDENTIFICATION: data.ID_USER },
-        attributes: ['ID_USER'],
-    });
+        if (!hasAllFields) {
+            return res.status(400).json({
+                message: "Faltan campos obligatorios para el registro completo"
+            });
+        }
 
-    if (!user) return { error: "Usuario no encontrado con esa cédula." };
-    
-    const isCourseValid = await isValidCourse(data.ID_COURSE);      
-    if (!isCourseValid) {
-        return { error: "El curso no existe o el ID es inválido." };
+        const course = await Course.findByPk(data.ID_COURSE);
+        if (!course) {
+            return res.status(400).json({ message: "El curso especificado no existe." });
+        }
+
+        const user = await User.findByPk(data.ID_USER);
+        if (!user) {
+            return res.status(400).json({ message: "El usuario especificado no existe." });
+        }
+
+        const result = await dbConnection.transaction(async (t) => {
+
+            const newEvaluationType = await EvaluationType.create({
+                ID_COURSE: data.ID_COURSE,
+                DSC_NAME: data.DSC_NAME,
+                WEIGHT: data.WEIGHT,
+                DATE_EVALUATION: data.DATE_EVALUATION,
+                DSC_EVALUATION: data.DSC_EVALUATION || null,
+                ID_USER: data.ID_USER
+            }, { transaction: t });
+
+            const newStudentEvaluation = await StudentEvaluation.create({
+                ID_TYPE: newEvaluationType.ID_TYPE, // Usamos el ID recién creado
+                SCORE_OBTAINED: data.SCORE_OBTAINED,
+                DSC_COMMENT: data.DSC_COMMENT || null
+            }, { transaction: t });
+
+            return {
+                evaluationType: newEvaluationType,
+                studentEvaluation: newStudentEvaluation
+            };
+        });
+
+        return res.status(201).json({
+            message: "Evaluación registrada exitosamente en ambas tablas",
+            data: result
+        });
+
+    } catch (error) {
+        return res.status(500).json({ 
+            message: "Error al registrar evaluación",
+            error: error.message 
+        });
     }
-    
-    data.ID_USER = user.ID_USER;
-    const isUserValid = await isValidUser(data.ID_USER);    
-    if (!isUserValid) {
-        return { error: "El usuario no existe o el ID es inválido." };
-    }
-
-    const evaluationType = await EvaluationType.create(data);
-   
-    const evaluationData = {
-        ID_TYPE: evaluationType.ID_TYPE,
-        SCORE_OBTAINED: data.SCORE_OBTAINED,
-        DSC_COMMENT: data.DSC_COMMENT
-    };
-    
-    const evaluation = await StudentEvaluation.create(evaluationData);
-    
-    return { success: true, evaluationType, evaluation };
 };
 
 export const updateEvaluationLogic = async (req, res) => {
