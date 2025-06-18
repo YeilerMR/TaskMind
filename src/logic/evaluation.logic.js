@@ -1,6 +1,6 @@
 import { evaluationTypeSchema } from "../schema/evaluation.schema.js";
-import models from "../model/evaluation.model.js";
-const { EvaluationType, StudentEvaluation } = models;
+import EvaluationType from "../model/evaluation.model.js";
+import StudentEvaluation from "../model/student.evaluation.model.js"
 import Course from "../model/course.model.js";
 import Professor from "../model/professorModel.js";
 import User from "../model/user.model.js";
@@ -30,24 +30,24 @@ const validateEvaluation = (evaluationData) => {
 };
 
 export const isValidCourse = async (ID_COURSE) => {
-    const course = await Course.findOne({ where: { ID_COURSE: ID_COURSE} });
+    const course = await Course.findOne({ where: { ID_COURSE: ID_COURSE } });
     return course;
 };
 
 export const isValidUser = async (ID_USER) => {
-    const user = await User.findOne({ where: { ID_USER: ID_USER} });
+    const user = await User.findOne({ where: { ID_USER: ID_USER } });
     return user;
 };
 
 export const createEvaluationLogic = async (req, res) => {
     try {
         const data = req.body;
-        
+
         const hasAllFields = data.hasOwnProperty("ID_COURSE") &&
-                            data.hasOwnProperty("WEIGHT") &&
-                            data.hasOwnProperty("DSC_NAME") &&
-                            data.hasOwnProperty("DATE_EVALUATION") &&
-                            data.hasOwnProperty("ID_USER");
+            data.hasOwnProperty("WEIGHT") &&
+            data.hasOwnProperty("DSC_NAME") &&
+            data.hasOwnProperty("DATE_EVALUATION") &&
+            data.hasOwnProperty("ID_USER");
 
         if (!hasAllFields) {
             return res.status(400).json({
@@ -60,9 +60,9 @@ export const createEvaluationLogic = async (req, res) => {
             return res.status(400).json({ message: "El curso especificado no existe." });
         }
 
-        const user=await User.findOne({
+        const user = await User.findOne({
             where: { DSC_IDENTIFICATION: data.ID_USER }
-          });
+        });
         if (!user) {
             return res.status(400).json({ message: "El usuario especificado no existe." });
         }
@@ -77,16 +77,9 @@ export const createEvaluationLogic = async (req, res) => {
                 DSC_EVALUATION: data.DSC_EVALUATION || null,
                 ID_USER: user.ID_USER
             }, { transaction: t });
-/*
-            const newStudentEvaluation = await StudentEvaluation.create({
-                ID_TYPE: newEvaluationType.ID_TYPE, 
-                SCORE_OBTAINED: data.SCORE_OBTAINED,
-                DSC_COMMENT: data.DSC_COMMENT || null
-            }, { transaction: t });
-*/
+
             return {
                 evaluationType: newEvaluationType,
-               // studentEvaluation: newStudentEvaluation
             };
         });
 
@@ -96,9 +89,9 @@ export const createEvaluationLogic = async (req, res) => {
         });
 
     } catch (error) {
-        return res.status(500).json({ 
+        return res.status(500).json({
             message: "Error al registrar evaluación",
-            error: error.message 
+            error: error.message
         });
     }
 };
@@ -108,18 +101,16 @@ export const updateEvaluationLogic = async (req, res) => {
         const { id } = req.params;
         const data = req.body;
 
-        const hasEvaluationTypeFields = data.hasOwnProperty("ID_COURSE") || 
-                                      data.hasOwnProperty("WEIGHT") || 
-                                      data.hasOwnProperty("DSC_NAME") || 
-                                      data.hasOwnProperty("DATE_EVALUATION") || 
-                                      data.hasOwnProperty("ID_USER");
-/*
-        const hasStudentEvaluationFields = data.hasOwnProperty("SCORE_OBTAINED") || 
-                                         data.hasOwnProperty("DSC_COMMENT");*/
+        const hasEvaluationTypeFields = 
+            data.hasOwnProperty("ID_COURSE") ||
+            data.hasOwnProperty("WEIGHT") ||
+            data.hasOwnProperty("DSC_NAME") ||
+            data.hasOwnProperty("DATE_EVALUATION") ||
+            data.hasOwnProperty("ID_USER");
 
         const result = await dbConnection.transaction(async (t) => {
             const results = {};
-            
+
             if (hasEvaluationTypeFields) {
                 const evaluationType = await EvaluationType.findByPk(id, { transaction: t });
                 if (!evaluationType) {
@@ -148,7 +139,6 @@ export const updateEvaluationLogic = async (req, res) => {
                 results.evaluationType = evaluationType;
             }
 
-
             return results;
         });
 
@@ -157,7 +147,7 @@ export const updateEvaluationLogic = async (req, res) => {
             message = "Evaluación completa actualizada exitosamente";
         } else if (result.evaluationType) {
             message = "Tipo de evaluación actualizado exitosamente";
-        } 
+        }
 
         return res.status(200).json({
             message,
@@ -165,9 +155,9 @@ export const updateEvaluationLogic = async (req, res) => {
         });
 
     } catch (error) {
-        return res.status(500).json({ 
+        return res.status(500).json({
             message: "Error al actualizar evaluación",
-            error: error.message 
+            error: error.message
         });
     }
 };
@@ -180,9 +170,6 @@ export const getEvaluationsByUserID = async (req, res) => {
             userId,
         } = req.query;
 
-       
-
-        // Buscar usuario por número de identificación
         const user = await User.findOne({ where: { DSC_IDENTIFICATION: userId } });
 
         if (!user) {

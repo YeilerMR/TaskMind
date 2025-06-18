@@ -4,7 +4,6 @@ import Course from "./course.model.js";
 import User from "./user.model.js";
 
 const EvaluationType = dbConnection.define("EvaluationType", {
-
     ID_TYPE: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -50,57 +49,10 @@ const EvaluationType = dbConnection.define("EvaluationType", {
     }
 );
 
+EvaluationType.belongsTo(Course, { foreignKey: 'ID_COURSE' });
+Course.hasMany(EvaluationType, { foreignKey: 'ID_COURSE' });
 
-const StudentEvaluation = dbConnection.define("StudentEvaluation", {
-    ID_EVALUATION: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
-    ID_TYPE: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: EvaluationType,
-            key: "ID_TYPE"
-        },
-        allowNull: false
-    },
-    SCORE_OBTAINED: {
-        type: DataTypes.DOUBLE,
-        allowNull: false
-    },
-    DSC_COMMENT: {
-        type: DataTypes.STRING(255),
-        allowNull: true
-    },
+EvaluationType.belongsTo(User, { foreignKey: 'ID_USER' });
+User.hasMany(EvaluationType, { foreignKey: 'ID_USER' });
 
-},
-    {
-        timestamps: false,
-        tableName: "tsit_student_evaluation"
-    });
-
-EvaluationType.belongsTo(Course, {
-    foreignKey: 'ID_COURSE'
-});
-Course.hasMany(EvaluationType, {
-    foreignKey: 'ID_COURSE'
-});
-
-EvaluationType.belongsTo(User, {
-    foreignKey: 'ID_USER'
-});
-User.hasMany(EvaluationType, {
-    foreignKey: 'ID_USER'
-});
-
-StudentEvaluation.belongsTo(EvaluationType, {
-    foreignKey: 'ID_TYPE'
-});
-EvaluationType.hasMany(StudentEvaluation, {
-    foreignKey: 'ID_TYPE'
-});
-
-
-export default { EvaluationType, StudentEvaluation };
+export default EvaluationType;
