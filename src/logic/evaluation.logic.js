@@ -2,6 +2,7 @@ import { evaluationTypeSchema } from "../schema/evaluation.schema.js";
 import models from "../model/evaluation.model.js";
 const { EvaluationType, StudentEvaluation } = models;
 import Course from "../model/course.model.js";
+import Professor from "../model/professorModel.js";
 import User from "../model/user.model.js";
 import { DOUBLE, Op } from "sequelize";
 import dbConnection from "../database/dbConnection.js";
@@ -225,7 +226,10 @@ export const getEvaluationsByUserID = async (req, res) => {
             include: [
                 {
                     model: Course,
-                    attributes: ['DSC_NAME', 'DSC_CODE'],
+                    include: [{
+                        model: Professor,
+                        attributes: ['DSC_FIRST_NAME', 'DSC_LAST_NAME_ONE', 'DSC_LAST_NAME_TWO', 'DSC_EMAIL', 'DSC_PHONE'],
+                    }]
                 },
                 {
                     model: StudentEvaluation,
