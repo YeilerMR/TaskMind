@@ -69,13 +69,16 @@ BEGIN
         et.DSC_NAME AS NombreEvaluacion,
         et.DATE_EVALUATION AS FechaEvaluacion,
         et.DSC_EVALUATION AS Detalle,
-        c.DSC_NAME AS Curso
+        c.DSC_NAME AS Curso,
+		c.DSC_COLOR AS Color_Curso
     FROM tsim_evaluation_type et
     INNER JOIN tsim_course c ON et.ID_COURSE = c.ID_COURSE
     WHERE c.ID_USER = @ID_USER
       AND et.DATE_EVALUATION >= CAST(GETDATE() AS DATE) 
     ORDER BY et.DATE_EVALUATION ASC;
 END
+
+
 
 
 
