@@ -47,8 +47,7 @@ export const createEvaluationLogic = async (req, res) => {
                             data.hasOwnProperty("WEIGHT") &&
                             data.hasOwnProperty("DSC_NAME") &&
                             data.hasOwnProperty("DATE_EVALUATION") &&
-                            data.hasOwnProperty("ID_USER") &&
-                            data.hasOwnProperty("SCORE_OBTAINED");
+                            data.hasOwnProperty("ID_USER");
 
         if (!hasAllFields) {
             return res.status(400).json({
@@ -61,7 +60,9 @@ export const createEvaluationLogic = async (req, res) => {
             return res.status(400).json({ message: "El curso especificado no existe." });
         }
 
-        const user = await User.findByPk(data.ID_USER);
+        const user=await User.findOne({
+            where: { DSC_IDENTIFICATION: data.ID_USER }
+          });
         if (!user) {
             return res.status(400).json({ message: "El usuario especificado no existe." });
         }
@@ -74,23 +75,23 @@ export const createEvaluationLogic = async (req, res) => {
                 WEIGHT: data.WEIGHT,
                 DATE_EVALUATION: data.DATE_EVALUATION,
                 DSC_EVALUATION: data.DSC_EVALUATION || null,
-                ID_USER: data.ID_USER
+                ID_USER: user.ID_USER
             }, { transaction: t });
-
+/*
             const newStudentEvaluation = await StudentEvaluation.create({
                 ID_TYPE: newEvaluationType.ID_TYPE, 
                 SCORE_OBTAINED: data.SCORE_OBTAINED,
                 DSC_COMMENT: data.DSC_COMMENT || null
             }, { transaction: t });
-
+*/
             return {
                 evaluationType: newEvaluationType,
-                studentEvaluation: newStudentEvaluation
+               // studentEvaluation: newStudentEvaluation
             };
         });
 
         return res.status(201).json({
-            message: "Evaluación registrada exitosamente en ambas tablas",
+            message: "Evaluación registrada exitosamente",
             data: result
         });
 
@@ -112,9 +113,9 @@ export const updateEvaluationLogic = async (req, res) => {
                                       data.hasOwnProperty("DSC_NAME") || 
                                       data.hasOwnProperty("DATE_EVALUATION") || 
                                       data.hasOwnProperty("ID_USER");
-
+/*
         const hasStudentEvaluationFields = data.hasOwnProperty("SCORE_OBTAINED") || 
-                                         data.hasOwnProperty("DSC_COMMENT");
+                                         data.hasOwnProperty("DSC_COMMENT");*/
 
         const result = await dbConnection.transaction(async (t) => {
             const results = {};
@@ -147,35 +148,16 @@ export const updateEvaluationLogic = async (req, res) => {
                 results.evaluationType = evaluationType;
             }
 
-            if (hasStudentEvaluationFields) {
-                const studentEvaluation = await StudentEvaluation.findOne({ 
-                    where: { ID_TYPE: id },
-                    transaction: t 
-                });
-
-                if (!studentEvaluation) {
-                    throw new Error("Evaluación del estudiante no encontrada");
-                }
-
-                await studentEvaluation.update({
-                    SCORE_OBTAINED: data.SCORE_OBTAINED !== undefined ? data.SCORE_OBTAINED : studentEvaluation.SCORE_OBTAINED,
-                    DSC_COMMENT: data.DSC_COMMENT !== undefined ? data.DSC_COMMENT : studentEvaluation.DSC_COMMENT
-                }, { transaction: t });
-
-                results.studentEvaluation = studentEvaluation;
-            }
 
             return results;
         });
 
         let message = "";
-        if (result.evaluationType && result.studentEvaluation) {
+        if (result.evaluationType) {
             message = "Evaluación completa actualizada exitosamente";
         } else if (result.evaluationType) {
             message = "Tipo de evaluación actualizado exitosamente";
-        } else if (result.studentEvaluation) {
-            message = "Evaluación del estudiante actualizada exitosamente";
-        }
+        } 
 
         return res.status(200).json({
             message,
@@ -193,15 +175,12 @@ export const updateEvaluationLogic = async (req, res) => {
 export const getEvaluationsByUserID = async (req, res) => {
     try {
         const {
-            page = 1,
-            pageSize = 10,
             orderByField = 'DATE_EVALUATION',
             order = 'asc',
             userId,
         } = req.query;
 
-        const limit = parseInt(pageSize);
-        const offset = (parseInt(page) - 1) * limit;
+       
 
         // Buscar usuario por número de identificación
         const user = await User.findOne({ where: { DSC_IDENTIFICATION: userId } });
@@ -216,12 +195,10 @@ export const getEvaluationsByUserID = async (req, res) => {
 
         const sortOrder = ['asc', 'desc'].includes(order.toLowerCase()) ? order.toLowerCase() : 'asc';
 
-        const { count, rows } = await EvaluationType.findAndCountAll({
+        const evaluations = await EvaluationType.findAll({
             where: {
                 ID_USER: user.ID_USER,
             },
-            limit,
-            offset,
             order: [[field, sortOrder]],
             include: [
                 {
@@ -242,16 +219,13 @@ export const getEvaluationsByUserID = async (req, res) => {
             ],
         });
 
-        if (rows.length === 0) {
+        if (evaluations.length === 0) {
             return res.status(204).json({ message: "No se encontraron evaluaciones para este usuario." });
         }
 
         return res.status(200).json({
-            total: count,
-            totalPages: Math.ceil(count / limit),
-            currentPage: parseInt(page),
-            pageSize: limit,
-            evaluations: rows,
+            total: evaluations.length,
+            evaluations: evaluations,
         });
 
     } catch (error) {
