@@ -1,114 +1,145 @@
-import { studentEvaluationSchema } from "../schema/student.evaluation.schema";
-import StudentEvaluation from "../model/student.evaluation.model.js"
-import { Op } from "sequelize";
+import { studentEvaluationSchema } from "../schema/student.evaluation.schema.js";
+import StudentEvaluation from "../model/student.evaluation.model.js";
+import EvaluationType from "../model/evaluation.model.js";
 import dbConnection from "../database/dbConnection.js";
 
-// Crear evaluación del estudiante
+const validateStudentEvaluationsFields = (studentEvaluationData) => {
+    console.log("en la console", studentEvaluationData);
+    const data = {
+        ID_TYPE: Number(studentEvaluationData.ID_TYPE),
+        SCORE_OBTAINED: Number(studentEvaluationData.SCORE_OBTAINED),
+        DSC_COMMENT: studentEvaluationData.DSC_COMMENT,
+    };
+
+    const result = studentEvaluationSchema.safeParse(data);
+    if (!result.success) {
+        return result.error.errors.map(e => e.message).join(", ");
+    }
+
+    return null;
+};
+
+export const isValidEvaluationType = async (ID_TYPE) => {
+    return await EvaluationType.findOne({ where: { ID_TYPE } });
+};
 export const createStudentEvaluationLogic = async (req, res) => {
     try {
         const data = req.body;
 
-        if (!data.ID_TYPE || data.SCORE_OBTAINED == null) {
+        const validationError = validateStudentEvaluationsFields(data);
+        if (validationError) {
             return res.status(400).json({
-                message: "ID_TYPE y SCORE_OBTAINED son campos obligatorios."
+                message: "Datos inválidos",
+                error: validationError
             });
         }
 
-        const evaluation = await EvaluationType.findByPk(data.ID_TYPE);
-        if (!evaluation) {
+        const evaluationType = await isValidEvaluationType(data.ID_TYPE);
+        if (!evaluationType) {
             return res.status(404).json({
-                message: "El tipo de evaluación especificado no existe."
+                message: `El tipo de evaluación con ID_TYPE ${data.ID_TYPE} no existe.`
             });
         }
 
-        const newStudentEvaluation = await StudentEvaluation.create({
-            ID_TYPE: data.ID_TYPE,
-            SCORE_OBTAINED: data.SCORE_OBTAINED,
-            DSC_COMMENT: data.DSC_COMMENT || null
+        const result = await dbConnection.transaction(async (t) => {
+
+            const existingEvaluation = await StudentEvaluation.findOne({
+                where: { ID_TYPE: data.ID_TYPE },
+                transaction: t
+            });
+            console.log("existingevaluation", existingEvaluation);
+            if (existingEvaluation) {
+                await existingEvaluation.destroy({ transaction: t });
+            }
+
+            const newStudentEvaluation = await StudentEvaluation.create({
+                ID_TYPE: data.ID_TYPE,
+                SCORE_OBTAINED: data.SCORE_OBTAINED,
+                DSC_COMMENT: data.DSC_COMMENT
+            }, { transaction: t });
+
+            return { studentEvaluation: newStudentEvaluation };
         });
 
         return res.status(201).json({
-            message: "Evaluación del estudiante creada correctamente",
-            data: newStudentEvaluation
+            message: "Calificación registrada exitosamente.",
+            data: result
         });
+
     } catch (error) {
         return res.status(500).json({
-            message: "Error al registrar evaluación del estudiante",
+            message: "Error al registrar la calificación.",
             error: error.message
         });
     }
 };
 
-// Actualizar evaluación del estudiante
 export const updateStudentEvaluationLogic = async (req, res) => {
     try {
-        const { id } = req.params;
+        const id = req.params.id; // ID_EVALUATION
         const data = req.body;
 
-        const studentEval = await StudentEvaluation.findByPk(id);
-        if (!studentEval) {
-            return res.status(404).json({ message: "Evaluación del estudiante no encontrada." });
+        const validationError = validateStudentEvaluationsFields(data);
+        if (validationError) {
+            return res.status(400).json({
+                message: "Datos inválidos",
+                error: validationError
+            });
         }
 
-        await studentEval.update({
-            SCORE_OBTAINED: data.SCORE_OBTAINED ?? studentEval.SCORE_OBTAINED,
-            DSC_COMMENT: data.DSC_COMMENT ?? studentEval.DSC_COMMENT
+        const evaluationType = await isValidEvaluationType(data.ID_TYPE);
+        if (!evaluationType) {
+            return res.status(404).json({
+                message: `El tipo de evaluación con ID_TYPE ${data.ID_TYPE} no existe.`
+            });
+        }
+
+        const existingEvaluation = await StudentEvaluation.findByPk(id);
+        if (!existingEvaluation) {
+            return res.status(404).json({
+                message: `No se encontró ninguna evaluación con ID_EVALUATION ${id}.`
+            });
+        }
+
+        await existingEvaluation.update({
+            ID_TYPE: data.ID_TYPE,
+            SCORE_OBTAINED: data.SCORE_OBTAINED,
+            DSC_COMMENT: data.DSC_COMMENT
         });
 
         return res.status(200).json({
-            message: "Evaluación del estudiante actualizada correctamente",
-            data: studentEval
+            message: "Evaluación actualizada exitosamente.",
+            data: existingEvaluation
         });
+
     } catch (error) {
         return res.status(500).json({
-            message: "Error al actualizar evaluación del estudiante",
+            message: "Error al actualizar la evaluación.",
             error: error.message
         });
     }
 };
 
-// Obtener evaluaciones de estudiantes por tipo de evaluación
-export const getStudentEvaluationsByType = async (req, res) => {
-    try {
-        const { typeId } = req.params;
-
-        const evaluations = await StudentEvaluation.findAll({
-            where: { ID_TYPE: typeId }
-        });
-
-        if (!evaluations.length) {
-            return res.status(204).json({ message: "No hay evaluaciones de estudiantes para este tipo." });
-        }
-
-        return res.status(200).json({
-            total: evaluations.length,
-            evaluations
-        });
-    } catch (error) {
-        return res.status(500).json({
-            message: "Error al obtener evaluaciones de estudiantes",
-            error: error.message
-        });
-    }
-};
-
-// Eliminar evaluación individual
 export const deleteStudentEvaluationLogic = async (req, res) => {
     try {
-        const { id } = req.params;
+        const id = req.params.id;
 
-        const deleted = await StudentEvaluation.destroy({
-            where: { ID_EVALUATION: id }
-        });
-
-        if (deleted === 0) {
-            return res.status(404).json({ message: "Evaluación no encontrada" });
+        const evaluation = await StudentEvaluation.findByPk(id);
+        if (!evaluation) {
+            return res.status(404).json({
+                message: `No se encontró ninguna evaluación con ID_EVALUATION ${id}.`
+            });
         }
 
-        return res.status(200).json({ message: "Evaluación eliminada correctamente" });
+        await evaluation.destroy();
+
+        return res.status(200).json({
+            message: "Evaluación eliminada exitosamente."
+        });
+
     } catch (error) {
         return res.status(500).json({
-            message: "Error al eliminar evaluación",
+            message: "Error al eliminar la evaluación.",
             error: error.message
         });
     }

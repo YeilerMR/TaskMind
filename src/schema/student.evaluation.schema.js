@@ -1,14 +1,6 @@
 import { z } from "zod";
 
 export const studentEvaluationSchema = z.object({
-    ID_EVALUATION: z
-        .number({
-            required_error: "El ID de la evaluación es obligatorio.",
-            invalid_type_error: "El ID de la evaluación debe ser un número.",
-        })
-        .int({ message: "El ID de la evaluación debe ser un número entero." })
-        .positive({ message: "El ID de la evaluación debe ser positivo." }),
-
     ID_TYPE: z
         .number({
             required_error: "El tipo de evaluación es obligatorio.",
