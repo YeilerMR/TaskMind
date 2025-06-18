@@ -4,7 +4,6 @@ import EvaluationType from "../model/evaluation.model.js";
 import dbConnection from "../database/dbConnection.js";
 
 const validateStudentEvaluationsFields = (studentEvaluationData) => {
-    console.log("en la console", studentEvaluationData);
     const data = {
         ID_TYPE: Number(studentEvaluationData.ID_TYPE),
         SCORE_OBTAINED: Number(studentEvaluationData.SCORE_OBTAINED),
@@ -47,7 +46,7 @@ export const createStudentEvaluationLogic = async (req, res) => {
                 where: { ID_TYPE: data.ID_TYPE },
                 transaction: t
             });
-            console.log("existingevaluation", existingEvaluation);
+
             if (existingEvaluation) {
                 await existingEvaluation.destroy({ transaction: t });
             }
