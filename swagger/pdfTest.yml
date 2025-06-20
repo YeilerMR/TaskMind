@@ -1,0 +1,75 @@
+openapi: 3.0.3
+info:
+  title: API para creación de curso desde PDF
+  version: 1.0.0
+paths:
+  /api/pdf/registerPDF/{id}:
+    post:
+      summary: Crear curso y profesor desde PDF
+      description: Recibe un archivo PDF con los datos del curso y profesor, y la cédula del usuario como parámetro para crear el curso.
+      tags:
+        - Cursos
+      parameters:
+        - name: id
+          in: path
+          description: Cédula del usuario que crea el curso
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                pdf:
+                  type: string
+                  format: binary
+                  description: Archivo PDF con los datos del curso y profesor
+              required:
+                - pdf
+      responses:
+        '201':
+          description: Curso creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Curso creado exitosamente.
+                  curso:
+                    type: object
+                    description: Datos del curso creado
+        '400':
+          description: Error de validación o datos inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Usuario no encontrado con esa cédula.
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Usuario no encontrado con esa cédula.
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error interno al procesar el PDF.
