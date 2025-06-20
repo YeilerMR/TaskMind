@@ -47,62 +47,37 @@ export const createNoteLogic = async (data) => {
 
     if (!user) return { error: "Usuario no encontrado con esa cédula." };
 
-     const isCourseValid = await isValidCourse(data.ID_COURSE);
+    const isCourseValid = await isValidCourse(data.ID_COURSE);
     if (!isCourseValid) {
         return { error: "El curso no existe o el ID es inválido." };
     }
 
     data.ID_USER = user.ID_USER;
 
-    const isUserValid = await isValidUser(data.ID_USER);
-    if (!isUserValid) {
-        return { error: "El usuario no existe o el ID es inválido." };
-    }
-
-    
-
     const note = await Notes.create(data);
-    return { success: true, note };
+    return { note };
 };
 
 // Function to update an existing note
-export const updateNoteLogic = async (notesId, { ID_USER, ID_COURSE, DSC_TITLE, DSC_COMMENT, DATE_NOTE }) => {
-    console.log(ID_USER, ID_COURSE, DSC_TITLE, DSC_COMMENT, DATE_NOTE);
-    const validationError = validateNote({
-        ID_USER,
-        ID_COURSE,
-        DSC_TITLE,
-        DSC_COMMENT,
-        DATE_NOTE,
-    });
+export const updateNoteLogic = async (notesId, updateData) => {
+    const validationError = validateNote(updateData);
+    if (validationError) return { error: validationError };
 
-    if (validationError) {
-        return { error: validationError };
-    }
-
-    const isUserValid = await isValidUser(ID_USER);
+    const isUserValid = await isValidUser(updateData.ID_USER);
     if (!isUserValid) {
         return { error: "El usuario no existe o el ID es inválido." };
     }
 
-    const isCourseValid = await isValidCourse(ID_COURSE);
+    const isCourseValid = await isValidCourse(updateData.ID_COURSE);
     if (!isCourseValid) {
         return { error: "El curso no existe o el ID es inválido." };
     }
 
     const note = await Notes.findOne({ where: { ID_STUDENT_NOTE: notesId } });
     if (!note) {
-        return { error: "Nota no encontrado." };
+        return { error: "Nota no encontrada." };
     }
 
-    await note.update({
-        ID_USER,
-        ID_COURSE,
-        DSC_TITLE,
-        DSC_COMMENT,
-        DATE_NOTE,
-    });
-
-    return { note };
+    const updatedNote = await note.update(updateData);
+    return { note: updatedNote };
 };
-
