@@ -12,6 +12,10 @@ import courseRoutes from "./routes/course.routes.js";
 import noteRoutes from "./routes/notes.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import loginRoute from "./routes/logic.routes.js"
+import homePageRoutes from "./routes/homepage.routes.js"
+import evaluationRoute from "./routes/evaluation.routes.js";
+import studentEvaluationRoute from "./routes/student.evaluation.routes.js";
+import pdfRoutes from "./routes/pdrData.routes.js";
 
 const logger = new Console("APP");
 
@@ -33,6 +37,10 @@ const courseDoc = loadSwaggerDoc('./swagger/course.yml');
 const userDoc = loadSwaggerDoc('./swagger/user.yml');
 const loginDoc = loadSwaggerDoc('./swagger/login.yml');
 const noteDoc = loadSwaggerDoc('./swagger/note.yml');
+const evaluationDoc = loadSwaggerDoc('./swagger/evaluation.yml');
+const studentEvaluationDoc = loadSwaggerDoc('./swagger/student-evaluation.yml');
+const homepage = loadSwaggerDoc('./swagger/homepage.yml');
+const pdfTest = loadSwaggerDoc('./swagger/pdfTest.yml');
 
 // configure swagger UI
 const options = {
@@ -59,6 +67,22 @@ const options = {
             {
                 url: '/api-docs/note.json',
                 name: 'Notes'
+            },
+            {
+                url: '/api-docs/evaluation.json',
+                name: 'Evaluations'
+            },
+            {
+                url: '/api-docs/student-evaluation.json',
+                name: 'Student Evaluations'
+            },
+            {
+                url: '/api-docs/homepage.json',
+                name: 'Homepage'
+            },
+            {
+                url: '/api-docs/pdfTest.json',
+                name: 'PdfTest'
             }
         ]
     }
@@ -92,6 +116,22 @@ app.get('/api-docs/note.json', (req, res) => {
     res.json(noteDoc);
 });
 
+app.get('/api-docs/evaluation.json', (req, res) => {
+    res.json(evaluationDoc);
+});
+
+app.get('/api-docs/student-evaluation.json', (req, res) => {
+    res.json(studentEvaluationDoc);
+})
+
+app.get('/api-docs/homepage.json', (req, res) => {
+    res.json(homepage);
+})
+
+app.get('/api-docs/pdfTest.json', (req, res) => {
+    res.json(pdfTest);
+})
+
 // principal routes for swagger UI
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(null, options));
 
@@ -99,9 +139,12 @@ app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(null, options));
 app.use("/api/professor", professorRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/notes", noteRoutes);
-app.use("/api/users",userRoutes);
-app.use("/api/Auth",loginRoute);
-
+app.use("/api/users", userRoutes);
+app.use("/api/Auth", loginRoute);
+app.use("/api/evaluation", evaluationRoute);
+app.use("/api/student-evaluation", studentEvaluationRoute);
+app.use("/api/home-page", homePageRoutes);
+app.use("/api/pdf", pdfRoutes);
 // Error management
 app.use((err, req, res, next) => {
     logger.error(`Error: ${err.message}`);

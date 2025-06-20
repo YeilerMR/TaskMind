@@ -7,7 +7,7 @@ import { registerUsers,updateUser,deleteUser } from "../controller/user.controll
 const router = new Router();
 
 router.post('/registerUser',validateSchema(userSchema), registerUsers);
-router.put('/updateUser/:id',auth,verifyUpdateAccess,validateSchema(updateUserSchema),updateUser);
+router.put('/updateUser/:id',validateSchema(updateUserSchema),updateUser);
 router.put('/deleteUser/:id',auth,verifyUpdateAccess,deleteUser);
 
 

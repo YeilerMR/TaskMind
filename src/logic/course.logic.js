@@ -3,6 +3,8 @@ import Professor from "../model/professorModel.js";
 import Course from "../model/course.model.js";
 import Notes from "../model/note.model.js";
 import User from "../model/user.model.js";
+import EvaluationType from "../model/evaluation.model.js";
+import { format } from 'date-fns';
 import { Op } from "sequelize";
 
 // Validations
@@ -122,7 +124,9 @@ export const searchCoursesLogic = async ({ page, pageSize, termSearch, orderByFi
         include: [{
             model: Professor,
             attributes: ['DSC_FIRST_NAME', 'DSC_LAST_NAME_ONE', 'DSC_LAST_NAME_TWO'],
-        }]
+        },
+        
+    ]
     });
 
     return { total: count, courses: rows };
@@ -139,7 +143,7 @@ export const getAllCoursesLogic = async ({ page, pageSize, userId, orderByField,
     });
 
     if (!user) return { error: "Usuario no encontrado con esa cédula." };
-
+    const today = format(new Date(), 'yyyy-MM-dd'); 
     const field = ['DSC_NAME', 'DSC_CODE', 'DSC_ATTENTION'].includes(orderByField) ? orderByField : 'DSC_NAME';
     const sortOrder = order.toLowerCase() === 'desc' ? 'desc' : 'asc';
 
@@ -151,8 +155,45 @@ export const getAllCoursesLogic = async ({ page, pageSize, userId, orderByField,
         include: [{
             model: Professor,
             attributes: ['DSC_FIRST_NAME', 'DSC_LAST_NAME_ONE', 'DSC_LAST_NAME_TWO', 'DSC_EMAIL', 'DSC_PHONE'],
-        }],
+        },
+        {
+            model: EvaluationType,
+            where: {
+                DATE_EVALUATION: {
+                    [Op.gte]:today
+                }
+            },
+            required: false,
+            order: [['DATE_EVALUATION', 'ASC']]
+        }
+
+    ],
     });
 
-    return { total: count, courses: rows };
+    console.log(rows)
+
+    const filteredCourses = rows.map(course => {
+        const evaluations = course.EvaluationTypes || [];
+    
+        // Ordenar las evaluaciones por fecha ascendente
+        const sortedEvals = evaluations.sort((a, b) =>
+            new Date(a.DATE_EVALUATION) - new Date(b.DATE_EVALUATION)
+        );
+    
+        const nextEvaluation = sortedEvals.length > 0 ? sortedEvals : null;
+    
+        const courseData = course.toJSON();
+        delete courseData.EvaluationTypes;
+    
+        return {
+            ...courseData,
+            EvaluationType: nextEvaluation 
+        };
+    });
+    
+
+return {
+    total: count,
+    courses: filteredCourses
+};
 };

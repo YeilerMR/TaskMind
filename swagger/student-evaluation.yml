@@ -1,0 +1,156 @@
+openapi: 3.0.0
+info:
+  title: TaskMind API - Student Evaluations
+  version: 1.0.0
+  description: Endpoints para gestionar los resultados de evaluaciones por estudiante en TaskMind
+
+servers:
+  - url: http://localhost:4000
+    description: Servidor local
+
+paths:
+  /api/student-evaluation/register:
+    post:
+      summary: Registra una evaluación de estudiante
+      description: Crea un nuevo registro de calificación de estudiante para una evaluación existente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentEvaluationInput'
+      responses:
+        '201':
+          description: Evaluación registrada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentEvaluationResponse'
+        '400':
+          description: Datos inválidos
+        '404':
+          description: Tipo de evaluación no encontrado
+        '500':
+          description: Error interno del servidor
+
+  /api/student-evaluation/update_student_evaluation/{id}:
+    put:
+      summary: Actualiza una evaluación de estudiante
+      description: Actualiza la nota obtenida y/o comentario de una evaluación específica
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID de la evaluación de estudiante (ID_EVALUATION)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentEvaluationUpdate'
+      responses:
+        '200':
+          description: Evaluación actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentEvaluationResponse'
+        '400':
+          description: Datos inválidos
+        '404':
+          description: Evaluación no encontrada
+        '500':
+          description: Error interno del servidor
+
+  /api/student-evaluation/delete_student_evaluation/{id}:
+    delete:
+      summary: Elimina una evaluación de estudiante
+      description: Elimina una evaluación específica del estudiante (por ID_EVALUATION)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID de la evaluación de estudiante a eliminar
+      responses:
+        '200':
+          description: Evaluación eliminada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Evaluación eliminada exitosamente."
+        '404':
+          description: Evaluación no encontrada
+        '500':
+          description: Error interno del servidor
+
+components:
+  schemas:
+    StudentEvaluationInput:
+      type: object
+      properties:
+        ID_TYPE:
+          type: integer
+          example: 5
+        SCORE_OBTAINED:
+          type: number
+          format: double
+          example: 88.5
+        DSC_COMMENT:
+          type: string
+          maxLength: 255
+          example: "Buen desempeño en la prueba"
+      required:
+        - ID_TYPE
+        - SCORE_OBTAINED
+
+    StudentEvaluationUpdate:
+      type: object
+      properties:
+        ID_TYPE:
+          type: integer
+          example: 5
+        SCORE_OBTAINED:
+          type: number
+          format: double
+          example: 91.0
+        DSC_COMMENT:
+          type: string
+          maxLength: 255
+          example: "Nota actualizada después de revisión"
+      required:
+        - ID_TYPE
+        - SCORE_OBTAINED
+
+    StudentEvaluationResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Evaluación registrada exitosamente."
+        data:
+          $ref: '#/components/schemas/StudentEvaluation'
+
+    StudentEvaluation:
+      type: object
+      properties:
+        ID_EVALUATION:
+          type: integer
+          example: 12
+        ID_TYPE:
+          type: integer
+          example: 5
+        SCORE_OBTAINED:
+          type: number
+          format: double
+          example: 91.0
+        DSC_COMMENT:
+          type: string
+          example: "Comentario opcional"
