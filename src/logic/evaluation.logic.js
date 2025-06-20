@@ -100,6 +100,7 @@ export const updateEvaluationLogic = async (req, res) => {
     try {
         const { id } = req.params;
         const data = req.body;
+        console.log("DATA RECIBIDA: ", req.params, req.body);
 
         const hasEvaluationTypeFields = 
             data.hasOwnProperty("ID_COURSE") ||
@@ -122,10 +123,19 @@ export const updateEvaluationLogic = async (req, res) => {
                     if (!course) throw new Error("El curso especificado no existe");
                 }
 
-                if (data.ID_USER) {
-                    const user = await User.findByPk(data.ID_USER, { transaction: t });
-                    if (!user) throw new Error("El usuario especificado no existe");
-                }
+                if (data.ID_USER !== undefined) {
+                    const user = await User.findOne({
+                        where: { DSC_IDENTIFICATION: data.ID_USER },
+                        attributes: ['ID_USER'],
+                        transaction: t
+                    });
+                    
+                    if (!user) {
+                        throw new Error("El usuario especificado no existe");
+                    }
+                
+                    data.ID_USER = user.ID_USER;
+                }                
 
                 await evaluationType.update({
                     ID_COURSE: data.ID_COURSE || evaluationType.ID_COURSE,
@@ -155,11 +165,12 @@ export const updateEvaluationLogic = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("ERROR AL ACTUALIZAR EVALUACIÓN:", error);  // <- Añade esto
         return res.status(500).json({
             message: "Error al actualizar evaluación",
             error: error.message
         });
-    }
+    }    
 };
 
 export const getEvaluationsByUserID = async (req, res) => {
