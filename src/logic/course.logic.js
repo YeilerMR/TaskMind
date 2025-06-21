@@ -170,6 +170,7 @@ export const getAllCoursesLogic = async ({ page, pageSize, userId, orderByField,
     ],
     });
 
+    console.log(rows)
 
     const filteredCourses = rows.map(course => {
         const evaluations = course.EvaluationTypes || [];
@@ -179,7 +180,7 @@ export const getAllCoursesLogic = async ({ page, pageSize, userId, orderByField,
             new Date(a.DATE_EVALUATION) - new Date(b.DATE_EVALUATION)
         );
     
-        const nextEvaluation = sortedEvals.length > 0 ? sortedEvals[0] : null;
+        const nextEvaluation = sortedEvals.length > 0 ? sortedEvals : null;
     
         const courseData = course.toJSON();
         delete courseData.EvaluationTypes;
