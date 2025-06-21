@@ -4,7 +4,7 @@ import Notes from "../model/note.model.js";
 import User from "../model/user.model.js";
 import { Op } from 'sequelize';
 import Console from "../Lib/Console.js";
-import {getDateCR} from "../Lib/date.js";
+import { getDateCR } from "../Lib/date.js";
 
 const logger = new Console("P_CONTROLLER");
 
@@ -25,16 +25,28 @@ async function isValidCourse(ID_COURSE) {
 
 export const registerNote = async (req, res) => {
     try {
-           const { error, success, course } = await createNoteLogic(req.body);
-   
-           if (error) return res.status(400).json({ message: error });
-   
-           res.json({ status: 200, course, message: "Nota creada exitosamente" });
-       } catch (error) {
-           logger.error("Error al registrar nota: " + error.message);
-           res.status(500).json({ message: error.message });
-       }
-   };
+        const result = await createNoteLogic(req.body);
+
+        if (result.error) {
+            return res.status(400).json({
+                success: false,
+                message: result.error
+            });
+        }
+
+        res.status(201).json({
+            success: true,
+            note: result.note,
+            message: "Nota creada exitosamente"
+        });
+    } catch (error) {
+        logger.error("Error al registrar nota: " + error.message);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
 
 export const getAllNotes = async (req, res) => {
     try {
@@ -57,7 +69,7 @@ export const getAllNotes = async (req, res) => {
             include: [
                 {
                     model: User,
-                    attributes: ['DSC_FIRST_NAME', 'DSC_LAST_NAME_ONE', 'DSC_EMAIL','DSC_CAREER'],
+                    attributes: ['DSC_FIRST_NAME', 'DSC_LAST_NAME_ONE', 'DSC_EMAIL', 'DSC_CAREER'],
                 },
                 {
                     model: Course,
@@ -106,7 +118,7 @@ export const deleteNote = async (req, res) => {
 
         // Log and success respond
         logger.success(`Nota "${note.DSC_TITLE}" (ID: ${note.ID_STUDENT_NOTE}) eliminada permanentemente.`);
-        return res.json({ 
+        return res.json({
             success: true,
             message: "Nota eliminada permanentemente de la base de datos.",
             deletedNote: {
@@ -116,32 +128,39 @@ export const deleteNote = async (req, res) => {
         });
     } catch (error) {
         logger.error(`Error al eliminar nota: ${error.message}`);
-        return res.status(500).json({ 
+        return res.status(500).json({
             success: false,
             message: "Error al eliminar la nota",
-            error: error.message 
+            error: error.message
         });
     }
 };
 
 export const updateNote = async (req, res) => {
     try {
-        const { ID_USER, ID_COURSE, DSC_TITLE, DSC_COMMENT, DATE_NOTE } = req.body;
+        const result = await updateNoteLogic(
+            req.params.id,
+            req.body
+        );
 
-        const noteObj = await Notes.findOne({ where: { ID_STUDENT_NOTE: req.params.id } });
+        if (result.error) {
+            return res.status(400).json({
+                success: false,
+                message: result.error
+            });
+        }
 
-        if (!noteObj) {
-            return res.status(404).json({ message: "Error al cargar la nota." });
-          }
-
-          await noteObj.update({
-            ID_USER, ID_COURSE, DSC_TITLE, DSC_COMMENT,DATE_NOTE,
-          });
-
-          return res.status(200).json({ message: "Nota actualizada correctamente" });
+        return res.status(200).json({
+            success: true,
+            note: result.note,
+            message: "Nota actualizada correctamente"
+        });
     } catch (error) {
         logger.error(`Error inesperado al actualizar la nota: ${error.message}`);
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -177,13 +196,13 @@ export const searchNotes = async (req, res) => {
                 ],
             },
             include: [{
-              model: User,
-              attributes: ['DSC_FIRST_NAME', 'DSC_LAST_NAME_ONE', 'DSC_EMAIL','DSC_CAREER'],
-          }],
-          include: [{
-            model: Course,
-            attributes: ['DSC_NAME', 'ID_TEACHER', 'DSC_CODE'],
-        }],
+                model: User,
+                attributes: ['DSC_FIRST_NAME', 'DSC_LAST_NAME_ONE', 'DSC_EMAIL', 'DSC_CAREER'],
+            }],
+            include: [{
+                model: Course,
+                attributes: ['DSC_NAME', 'ID_TEACHER', 'DSC_CODE'],
+            }],
         });
 
         if (rows.length === 0) {
