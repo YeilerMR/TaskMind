@@ -5,7 +5,8 @@ import admin from "../config/firebase.js";
 
 export const notifyUpcomingEvaluations = async () => {
     const now = new Date();
-    const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    now.setHours(now.getHours() - 6); // Ajustar a UTC-6
+    const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);    
 
     const nowStr = formatDateToSQL(now);
     const next24hStr = formatDateToSQL(next24h);

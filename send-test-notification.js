@@ -1,6 +1,6 @@
 import admin from "./src/config/firebase.js";
 
-const testToken = "cFO917QcRR-BebfRKeYSTS:APA91bFiXr52TJsYf4I8ZvCd2unT1b5M2dJ6OhKd4yN19D4Gm19p5jRg26hBlWMrOoqcEe34CbRXead6GPSnaOSJp_TV0cmUSE6bqn1qPUwhQTt-4IWYjEI";
+const testToken = "eVDPMcNCSaijKpZd6dTMfJ:APA91bHggo_aoGk6Mam17RafXfZpa8hpWhTkq3ldSz2OHSU2n9-XREnOQijAEMwF2S9HMmfG8JSVndu6jqPnRisaR64OpaX1NI8O79PhXINBjJMpcYXQPOs";
 
 async function sendTest() {
     try {
