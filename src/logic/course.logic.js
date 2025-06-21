@@ -92,6 +92,7 @@ export const deleteCourseLogic = async (id) => {
     if (!course) return { error: "Curso no encontrado." };
 
     await Notes.destroy({ where: { ID_COURSE: id } });
+    await EvaluationType.destroy({ where: { ID_COURSE: id } });
     await course.destroy();
 
     const otherCourses = await Course.count({ where: { ID_TEACHER: course.ID_TEACHER } });
