@@ -16,6 +16,9 @@ import homePageRoutes from "./routes/homepage.routes.js"
 import evaluationRoute from "./routes/evaluation.routes.js";
 import studentEvaluationRoute from "./routes/student.evaluation.routes.js";
 import pdfRoutes from "./routes/pdrData.routes.js";
+import fcmRoutes from "./routes/fcm.routes.js";
+
+import "./cron/evaluation.cron.js";
 
 const logger = new Console("APP");
 
@@ -145,6 +148,7 @@ app.use("/api/evaluation", evaluationRoute);
 app.use("/api/student-evaluation", studentEvaluationRoute);
 app.use("/api/home-page", homePageRoutes);
 app.use("/api/pdf", pdfRoutes);
+app.use("/api/fcm", fcmRoutes);
 // Error management
 app.use((err, req, res, next) => {
     logger.error(`Error: ${err.message}`);

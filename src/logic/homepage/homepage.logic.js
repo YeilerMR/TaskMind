@@ -20,7 +20,7 @@ export const initHomePage = async (req, res) => {
         );
 
         // Verificar los resultados
-        console.log('Results:', results); // Verifica el formato de los resultados
+        // console.log('Results:', results); // Verifica el formato de los resultados
 
         // Validar que al menos 'results' tenga información
         if (!results || results.length === 0) {

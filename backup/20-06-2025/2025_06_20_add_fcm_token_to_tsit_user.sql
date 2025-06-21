@@ -1,0 +1,13 @@
+USE [taskmind_db];
+GO
+
+IF NOT EXISTS (
+    SELECT * 
+    FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_NAME = 'tsit_user' 
+      AND COLUMN_NAME = 'FCM_TOKEN'
+)
+BEGIN
+    ALTER TABLE [dbo].[tsit_user]
+    ADD [FCM_TOKEN] VARCHAR(500) NULL;
+END

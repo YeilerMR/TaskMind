@@ -39,7 +39,11 @@ const User = dbConnection.define("user", {
     DSC_CAREER: {
         type: DataTypes.STRING(255),
         allowNull: false,
-    }
+    },
+    FCM_TOKEN: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+    },
 }, {
     tableName: "tsit_user", 
     timestamps: false, 
