@@ -4,8 +4,9 @@ import Course from "../model/course.model.js";
 import Notes from "../model/note.model.js";
 import User from "../model/user.model.js";
 import EvaluationType from "../model/evaluation.model.js";
+import StudentEvaluation from "../model/student.evaluation.model.js";
 import { format } from 'date-fns';
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 
 // Validations
 const validateCourse = (courseData) => {
@@ -92,6 +93,12 @@ export const deleteCourseLogic = async (id) => {
     if (!course) return { error: "Curso no encontrado." };
 
     await Notes.destroy({ where: { ID_COURSE: id } });
+    const evaluations= await EvaluationType.findAll({where:{ID_COURSE:id}})
+    if (evaluations.length > 0) {
+        for (const evaluation of evaluations) {
+            await StudentEvaluation.destroy({ where: { ID_TYPE: evaluation.ID_TYPE } });
+        }
+    }
     await EvaluationType.destroy({ where: { ID_COURSE: id } });
     await course.destroy();
 
@@ -159,14 +166,10 @@ export const getAllCoursesLogic = async ({ page, pageSize, userId, orderByField,
         },
         {
             model: EvaluationType,
-            where: {
-                DATE_EVALUATION: {
-                    [Op.gte]:today
-                }
-            },
-            required: false,
-            order: [['DATE_EVALUATION', 'ASC']]
-        }
+            include: [{
+                model: StudentEvaluation,
+            },]
+        },
 
     ],
     });
@@ -176,21 +179,34 @@ export const getAllCoursesLogic = async ({ page, pageSize, userId, orderByField,
     const filteredCourses = rows.map(course => {
         const evaluations = course.EvaluationTypes || [];
     
-        // Ordenar las evaluaciones por fecha ascendente
-        const sortedEvals = evaluations.sort((a, b) =>
-            new Date(a.DATE_EVALUATION) - new Date(b.DATE_EVALUATION)
+        if (evaluations.length === 0) {
+            return {
+                ...course.toJSON(),
+                EvaluationTypes: null,
+                nextEvaluation: null
+            };
+        }
+    
+        const now = new Date();
+    
+        const sortedEvals = evaluations.sort(
+            (a, b) => new Date(a.DATE_EVALUATION) - new Date(b.DATE_EVALUATION)
         );
     
-        const nextEvaluation = sortedEvals.length > 0 ? sortedEvals : null;
+        const nextEvaluation = sortedEvals.find(
+            evaluation => new Date(evaluation.DATE_EVALUATION) > now
+        ) || null;
     
         const courseData = course.toJSON();
         delete courseData.EvaluationTypes;
     
         return {
             ...courseData,
-            EvaluationType: nextEvaluation 
+            EvaluationType: sortedEvals, 
+            nextEvaluation 
         };
     });
+    
     
 
 return {
